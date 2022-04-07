@@ -1,0 +1,25 @@
+From 038256fff84da10d62ca96c56c961ef37022c266 Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Thu, 7 Apr 2022 19:36:38 +0200
+Subject: [PATCH 3/3] Add missing include (fuck you glibc)
+
+---
+ libgcc/libgcov.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/libgcc/libgcov.h b/libgcc/libgcov.h
+index 7b0d367ec..2ba714ee4 100644
+--- a/libgcc/libgcov.h
++++ b/libgcc/libgcov.h
+@@ -37,6 +37,8 @@
+ /* About the target.  */
+ /* This path will be used by libgcov runtime.  */
+ 
++#include <stdint.h>
++
+ #include "tconfig.h"
+ #include "auto-target.h"
+ #include "tsystem.h"
+-- 
+2.35.1
+

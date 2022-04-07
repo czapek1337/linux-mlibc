@@ -1,0 +1,84 @@
+From 5896f2df366498074ac233dbc83c379919f489e0 Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Thu, 7 Apr 2022 19:38:53 +0200
+Subject: [PATCH 1/2] ansi, glibc: Add missing ctype and glibc stuff
+
+---
+ options/ansi/include/ctype.h      | 20 ++++++++++++++++++++
+ options/glibc/include/features.h  |  2 ++
+ options/glibc/meson.build         |  3 ++-
+ options/posix/include/sys/types.h |  2 ++
+ 4 files changed, 26 insertions(+), 1 deletion(-)
+
+diff --git a/options/ansi/include/ctype.h b/options/ansi/include/ctype.h
+index 5d8e12c..5157fb8 100644
+--- a/options/ansi/include/ctype.h
++++ b/options/ansi/include/ctype.h
+@@ -7,6 +7,26 @@
+ extern "C" {
+ #endif
+ 
++// TODO: Endianess check
++#ifndef _ISbit
++#define _ISbit(bit) (1 << (bit))
++
++enum {
++  _ISupper = _ISbit(0), // UPPERCASE
++  _ISlower = _ISbit(1), // lowercase
++  _ISalpha = _ISbit(2), // Alphabetic
++  _ISdigit = _ISbit(3), // Numeric
++  _ISxdigit = _ISbit(4), // Hexadecimal numeric
++  _ISspace = _ISbit(5), // Whitespace
++  _ISprint = _ISbit(6), // Printing
++  _ISgraph = _ISbit(7), // Graphical
++  _ISblank = _ISbit(8), // Blank (usually SPC and TAB)
++  _IScntrl = _ISbit(9), // Control character
++  _ISpunct = _ISbit(10), // Punctuation
++  _ISalnum = _ISbit(11) // Alphanumeric
++};
++#endif // _ISbit
++
+ // Character classification function [7.4.1]
+ int isalnum(int c);
+ int isalpha(int c);
+diff --git a/options/glibc/include/features.h b/options/glibc/include/features.h
+index 382b684..895c061 100644
+--- a/options/glibc/include/features.h
++++ b/options/glibc/include/features.h
+@@ -3,4 +3,6 @@
+ 
+ // This header is a stub
+ 
++#define __GLIBC_PREREQ(MAJ, MIN) 0
++
+ #endif
+diff --git a/options/glibc/meson.build b/options/glibc/meson.build
+index 9dc0d66..d380016 100644
+--- a/options/glibc/meson.build
++++ b/options/glibc/meson.build
+@@ -19,7 +19,8 @@ if not no_headers
+ 		'include/endian.h',
+ 		'include/ar.h',
+ 		'include/shadow.h',
+-		'include/memory.h'
++		'include/memory.h',
++		'include/features.h'
+ 	)
+ 	install_headers(
+ 		'include/sys/ioctl.h',
+diff --git a/options/posix/include/sys/types.h b/options/posix/include/sys/types.h
+index 651ea59..82fb5b8 100644
+--- a/options/posix/include/sys/types.h
++++ b/options/posix/include/sys/types.h
+@@ -28,6 +28,8 @@
+ typedef unsigned int u_int;
+ typedef unsigned char u_char;
+ typedef unsigned short u_short;
++typedef unsigned long u_long;
++
+ typedef char *caddr_t;
+ 
+ #endif // _SYS_TYPES_H
+-- 
+2.35.1
+
