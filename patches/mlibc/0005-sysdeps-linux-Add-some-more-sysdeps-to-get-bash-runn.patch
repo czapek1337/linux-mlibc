@@ -1,0 +1,133 @@
+From 7cdc82d0ed5e5652a4ec6c6135409f90a07366c0 Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Thu, 7 Apr 2022 23:17:52 +0200
+Subject: [PATCH] sysdeps/linux: Add some more sysdeps to get bash running
+
+---
+ abis/linux/x86_64/termios.h       |  6 ++++
+ sysdeps/linux/generic/sysdeps.cpp | 54 ++++++++++++++++++++++++++++---
+ 2 files changed, 56 insertions(+), 4 deletions(-)
+
+diff --git a/abis/linux/x86_64/termios.h b/abis/linux/x86_64/termios.h
+index 60b6d77..77f7d7a 100644
+--- a/abis/linux/x86_64/termios.h
++++ b/abis/linux/x86_64/termios.h
+@@ -25,6 +25,12 @@ typedef unsigned int tcflag_t;
+ #define VLNEXT   15
+ #define VEOL2    16
+ 
++// ioctls
++#define TCGETS 0x5401
++#define TCSETS 0x5402
++#define TCSETSW 0x5403
++#define TCSETSF 0x5404
++
+ struct termios {
+ 	tcflag_t c_iflag;
+ 	tcflag_t c_oflag;
+diff --git a/sysdeps/linux/generic/sysdeps.cpp b/sysdeps/linux/generic/sysdeps.cpp
+index 1e65242..c36c791 100644
+--- a/sysdeps/linux/generic/sysdeps.cpp
++++ b/sysdeps/linux/generic/sysdeps.cpp
+@@ -26,6 +26,7 @@
+ #define NR_ioctl 16
+ #define NR_pipe 22
+ #define NR_select 23
++#define NR_dup 32
+ #define NR_nanosleep 35
+ #define NR_getpid 39
+ #define NR_socket 41
+@@ -114,6 +115,14 @@ int sys_close(int fd) {
+ 	return 0;
+ }
+ 
++int sys_dup(int fd, int flags, int *newfd) {
++	auto ret = do_cp_syscall(NR_dup, fd);
++	if(int e = sc_error(ret); e)
++		return e;
++	*newfd = sc_int_result<int>(ret);
++	return 0;
++}
++
+ int sys_dup2(int fd, int flags, int newfd) {
+ 	auto ret = do_cp_syscall(NR_dup3, fd, newfd, flags);
+ 	if(int e = sc_error(ret); e)
+@@ -284,11 +293,20 @@ int sys_sleep(time_t *secs, long *nanos) {
+ 	return 0;
+ }
+ 
++int sys_ioctl(int fd, unsigned long request, void *arg, int *result) {
++	auto ret = do_syscall(NR_ioctl, fd, request, arg);
++	if (int e = sc_error(ret); e)
++		return e;
++	*result = sc_int_result<int>(ret);
++	return 0;
++}
++
+ #ifdef __MLIBC_POSIX_OPTION
+ 
+ #include <sys/ioctl.h>
+ #include <sys/utsname.h>
+ #include <sched.h>
++#include <abi-bits/termios.h>
+ 
+ int sys_isatty(int fd) {
+         struct winsize ws;
+@@ -307,8 +325,8 @@ int sys_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
+         return 0;
+ }
+ 
+-int sys_pselect(int nfds, fd_set *readfds, fd_set *writefds,
+-                fd_set *exceptfds, struct timeval *timeout, const sigset_t sigmask, int *num_events) {
++int sys_pselect(int num_fds, fd_set *read_set, fd_set *write_set, fd_set *except_set,
++			    const struct timespec *timeout, const sigset_t *sigmask, int *num_events) {
+         // The Linux kernel really wants 7 arguments, even tho this is not supported
+         // To fix that issue, they use a struct as the last argument.
+         // See the man page of pselect and the glibc source code
+@@ -319,8 +337,8 @@ int sys_pselect(int nfds, fd_set *readfds, fd_set *writefds,
+         data.ss = (uintptr_t)sigmask;
+         data.ss_len = NSIG / 8;
+ 
+-        auto ret = do_cp_syscall(NR_pselect6, nfds, readfds, writefds,
+-                        exceptfds, timeout, &data);
++        auto ret = do_cp_syscall(NR_pselect6, num_fds, read_set, write_set,
++                        except_set, timeout, &data);
+         if (int e = sc_error(ret); e)
+                 return e;
+         *num_events = sc_int_result<int>(ret);
+@@ -569,4 +587,32 @@ pid_t sys_getppid() {
+ 	return sc_int_result<pid_t>(ret);
+ }
+ 
++int sys_tcgetattr(int fd, struct termios *attr) {
++	auto ret = do_syscall(NR_ioctl, fd, TCGETS, attr);
++	if (int e = sc_error(ret); e)
++		return e;
++	return 0;
++}
++
++int sys_tcsetattr(int fd, int opts, const struct termios *attr) {
++	int cmd;
++	switch (opts) {
++	case TCSANOW:
++		cmd = TCSETS;
++		break;
++	case TCSADRAIN:
++		cmd = TCSETSW;
++		break;
++	case TCSAFLUSH:
++		cmd = TCSETSF;
++		break;
++	default:
++		return EINVAL;
++	}
++	auto ret = do_syscall(NR_ioctl, fd, cmd, attr);
++	if (int e = sc_error(ret); e)
++		return e;
++	return 0;
++}
++
+ } // namespace mlibc
+-- 
+2.35.1
+
