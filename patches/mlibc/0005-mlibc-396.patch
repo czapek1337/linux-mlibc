@@ -1,0 +1,99 @@
+From 24a1d05c7381f8a951af16c2f6dc7c1144ae012b Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Kacper=20S=C5=82omi=C5=84ski?=
+ <kacper.slominski72@gmail.com>
+Date: Tue, 22 Feb 2022 00:46:14 +0100
+Subject: [PATCH 1/2] sysdeps/linux: add ioctl, access, tcgetattr, tcsetattr
+ sysdeps
+
+---
+ sysdeps/linux/generic/sysdeps.cpp | 39 +++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
+
+diff --git a/sysdeps/linux/generic/sysdeps.cpp b/sysdeps/linux/generic/sysdeps.cpp
+index 2d3ab749..d9b83812 100644
+--- a/sysdeps/linux/generic/sysdeps.cpp
++++ b/sysdeps/linux/generic/sysdeps.cpp
+@@ -24,6 +24,7 @@
+ #define NR_sigaction 13
+ #define NR_rt_sigprocmask 14
+ #define NR_ioctl 16
++#define NR_access 21
+ #define NR_pipe 22
+ #define NR_select 23
+ #define NR_nanosleep 35
+@@ -296,6 +297,15 @@ int sys_isatty(int fd) {
+         return 1;
+ }
+ 
++int sys_ioctl(int fd, unsigned long request, void *arg, int *result) {
++	auto ret = do_syscall(NR_ioctl, fd, request, arg);
++	if (int e = sc_error(ret); e)
++		return e;
++	if (result)
++		*result = sc_int_result<unsigned long>(ret);
++	return 0;
++}
++
+ int sys_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
+         auto ret = do_cp_syscall(NR_connect, sockfd, addr, addrlen);
+         if (int e = sc_error(ret); e)
+@@ -398,6 +408,35 @@ int sys_tgkill(int tgid, int tid, int sig) {
+ 	return 0;
+ }
+ 
++int sys_tcgetattr(int fd, struct termios *attr) {
++	auto ret = do_syscall(NR_ioctl, TCGETS, attr);
++	if (int e = sc_error(ret); e)
++		return e;
++	return 0;
++}
++
++int sys_tcsetattr(int fd, int optional_action, struct termios *attr) {
++	int req;
++
++	switch (optional_action) {
++		case TCSANOW: req = TCSETS; break;
++		case TCSADRAIN: req = TCSETSW; break;
++		case TCSAFLUSH: req = TCSETSF; break;
++	}
++
++	auto ret = do_syscall(NR_ioctl, req, attr);
++	if (int e = sc_error(ret); e)
++		return e;
++	return 0;
++}
++
++int sys_access(const char *path, int mode) {
++	auto ret = do_syscall(NR_access, path, mode);
++	if (int e = sc_error(ret); e)
++		return e;
++	return 0;
++}
++
+ #endif // __MLIBC_POSIX_OPTION
+ 
+ pid_t sys_getpid() {
+
+From 0d0ed16a07c46d8cfb48e7a9599170a0db777ab0 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Kacper=20S=C5=82omi=C5=84ski?=
+ <kacper.slominski72@gmail.com>
+Date: Tue, 22 Feb 2022 00:47:26 +0100
+Subject: [PATCH 2/2] sysdeps/linux: fix sys_pselect prototype
+
+---
+ sysdeps/linux/generic/sysdeps.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sysdeps/linux/generic/sysdeps.cpp b/sysdeps/linux/generic/sysdeps.cpp
+index d9b83812..9741dc62 100644
+--- a/sysdeps/linux/generic/sysdeps.cpp
++++ b/sysdeps/linux/generic/sysdeps.cpp
+@@ -314,7 +314,7 @@ int sys_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
+ }
+ 
+ int sys_pselect(int nfds, fd_set *readfds, fd_set *writefds,
+-                fd_set *exceptfds, struct timeval *timeout, const sigset_t sigmask, int *num_events) {
++                fd_set *exceptfds, const struct timespec *timeout, const sigset_t *sigmask, int *num_events) {
+         // The Linux kernel really wants 7 arguments, even tho this is not supported
+         // To fix that issue, they use a struct as the last argument.
+         // See the man page of pselect and the glibc source code

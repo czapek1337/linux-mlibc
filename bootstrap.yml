@@ -23,7 +23,7 @@ sources:
   - name: 'mlibc'
     subdir: 'build'
     git: 'https://github.com/managarm/mlibc.git'
-    tag: '2.2.0'
+    branch: 'master'
     version: '2.2.0'
 
   - name: 'bash'
