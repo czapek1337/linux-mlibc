@@ -12,5 +12,7 @@ Attempt at making a mlibc-based Linux distro.
 - `xbstrap init ..` - substitute `..` with an absoltue path if your system root isn't in the source tree
 - `xbstrap install -u --all` to build everything, which currently is just the cross toolchain, mlibc and bash
 
-To test it you can chroot into the `system-root` directory under the system root directory you created. Make
-sure to also mount all stuff like /dev, /proc, /sys and so on.
+To test it I have created a small script (`misc/chroot.sh`) that will create all the necessary directories
+and mount all virtual kernel file systems like /dev, /sys, /proc in their right places and chroot into your
+shiny new mlibc Linux :^) The script takes a single argument, which is the path to the system root directory
+you created in the beginning.
