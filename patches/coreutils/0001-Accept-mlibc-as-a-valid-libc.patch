@@ -1,0 +1,22 @@
+diff --git a/build-aux/config.sub b/build-aux/configopy.sub
+index f092a1f..d74fb6d 100755
+--- a/build-aux/config.sub
++++ b/build-aux/config.sub	
+@@ -1707,7 +1707,7 @@ fi
+ # Now, validate our (potentially fixed-up) OS.
+ case $os in
+ 	# Sometimes we do "kernel-libc", so those need to count as OSes.
+-	musl* | newlib* | relibc* | uclibc*)
++	musl* | newlib* | relibc* | uclibc* | mlibc*)
+ 		;;
+ 	# Likewise for "kernel-abi"
+ 	eabi* | gnueabi*)
+@@ -1766,7 +1766,7 @@ esac
+ # (given a valid OS), if there is a kernel.
+ case $kernel-$os in
+ 	linux-gnu* | linux-dietlibc* | linux-android* | linux-newlib* \
+-		   | linux-musl* | linux-relibc* | linux-uclibc* )
++		   | linux-musl* | linux-relibc* | linux-uclibc* | linux-mlibc*)
+ 		;;
+ 	uclinux-uclibc* )
+ 		;;

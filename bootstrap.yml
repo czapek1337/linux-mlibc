@@ -32,6 +32,14 @@ sources:
     tag: 'bash-5.1'
     version: '5.1'
 
+  - name: 'coreutils'
+    subdir: 'build'
+    url: 'https://ftp.gnu.org/gnu/coreutils/coreutils-9.0.tar.xz'
+    format: 'tar.xz'
+    extract_path: 'coreutils-9.0'
+    patch-path-strip: 1
+    version: '9.0'
+
 declare_options:
   - name: arch
     default: x86_64
@@ -172,6 +180,22 @@ packages:
         - '--prefix=/usr'
         - '--without-bash-malloc'
         - '--disable-nls'
+    build:
+      - args: ['make', '-j', '@PARALLELISM@']
+      - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
+
+  - name: 'coreutils'
+    from_source: 'coreutils'
+    tools_required: ['cross-gcc']
+    pkgs_required: ['mlibc']
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=@OPTION:arch-triple@'
+        - '--prefix=/usr'
+        - '--enable-install-program=hostname'
+        - '--enable-no-install-program=kill,uptime'
+        - 'CFLAGS=-DSLOW_BUT_NO_HACKS'
     build:
       - args: ['make', '-j', '@PARALLELISM@']
       - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
