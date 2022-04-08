@@ -13,15 +13,4 @@ Attempt at making a mlibc-based Linux distro.
 - `xbstrap install -u --all` to build everything, which currently is just the cross toolchain, mlibc and bash
 
 To test it you can chroot into the `system-root` directory under the system root directory you created. Make
-sure to also mount all stuff like /dev, /proc and so on.
-
-# Currently missing stuff
-
-A lot of stuff. My current goal is implement enough mlibc stuff to be able to run bash :^)
-
-- ttyname
-- dup
-- ioctl
-- setpgid
-- tcgetattr
-- pselect
+sure to also mount all stuff like /dev, /proc, /sys and so on.
