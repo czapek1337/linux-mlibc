@@ -1,28 +1,28 @@
-From 02be2ca9c85d1f4972ca0b3ca74156063f3b25c4 Mon Sep 17 00:00:00 2001
+From 61b287ddc491685bbd1483a0601fb1bebd0f355f Mon Sep 17 00:00:00 2001
 From: czapek1337 <czapek1337@gmail.com>
 Date: Thu, 7 Apr 2022 21:22:41 +0200
 Subject: [PATCH] posix, sysdeps/linux: Fix the utsname struct, add
  sys_gethostname
 
 ---
- options/posix/include/sys/utsname.h |  1 +
- sysdeps/linux/generic/sysdeps.cpp   | 23 +++++++++++++++++++++++
+ abis/linux/x86_64/utsname.h       |  1 +
+ sysdeps/linux/generic/sysdeps.cpp | 23 +++++++++++++++++++++++
  2 files changed, 24 insertions(+)
 
-diff --git a/options/posix/include/sys/utsname.h b/options/posix/include/sys/utsname.h
-index 63ad308..4cb0533 100644
---- a/options/posix/include/sys/utsname.h
-+++ b/options/posix/include/sys/utsname.h
-@@ -12,6 +12,7 @@ struct utsname {
+diff --git a/abis/linux/x86_64/utsname.h b/abis/linux/x86_64/utsname.h
+index 2cd2226..9875a46 100644
+--- a/abis/linux/x86_64/utsname.h
++++ b/abis/linux/x86_64/utsname.h
+@@ -7,6 +7,7 @@ struct utsname {
  	char release[65];
  	char version[65];
  	char machine[65];
 +	char domainname[65];
  };
  
- int uname(struct utsname *);
+ #endif // _ABIBITS_UTSNAME_T_H
 diff --git a/sysdeps/linux/generic/sysdeps.cpp b/sysdeps/linux/generic/sysdeps.cpp
-index bc3f8cd..f83ded8 100644
+index 9b44fa1..e5ef78c 100644
 --- a/sysdeps/linux/generic/sysdeps.cpp
 +++ b/sysdeps/linux/generic/sysdeps.cpp
 @@ -38,6 +38,7 @@
@@ -33,7 +33,7 @@ index bc3f8cd..f83ded8 100644
  #define NR_fcntl 72
  #define NR_getcwd 79
  #define NR_chdir 80
-@@ -284,6 +285,7 @@ int sys_sleep(time_t *secs, long *nanos) {
+@@ -285,6 +286,7 @@ int sys_sleep(time_t *secs, long *nanos) {
  #ifdef __MLIBC_POSIX_OPTION
  
  #include <sys/ioctl.h>
@@ -41,7 +41,7 @@ index bc3f8cd..f83ded8 100644
  #include <sched.h>
  
  int sys_isatty(int fd) {
-@@ -398,6 +400,27 @@ int sys_tgkill(int tgid, int tid, int sig) {
+@@ -399,6 +401,27 @@ int sys_tgkill(int tgid, int tid, int sig) {
  	return 0;
  }
  
