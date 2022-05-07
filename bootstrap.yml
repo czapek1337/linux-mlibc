@@ -1,44 +1,44 @@
 sources:
-  - name: 'binutils'
-    subdir: 'build'
-    git: 'https://github.com/bminor/binutils-gdb.git'
-    tag: 'binutils-2_38'
-    version: '2.38'
+  - name: "binutils"
+    subdir: "build"
+    git: "https://github.com/bminor/binutils-gdb.git"
+    tag: "binutils-2_38"
+    version: "2.38"
 
-  - name: 'gcc'
-    subdir: 'build'
-    git: 'https://github.com/gcc-mirror/gcc.git'
-    tag: 'releases/gcc-11.2.0'
-    version: '11.2.0'
+  - name: "gcc"
+    subdir: "build"
+    git: "https://github.com/gcc-mirror/gcc.git"
+    tag: "releases/gcc-11.2.0"
+    version: "11.2.0"
     regenerate:
-      - args: ['./contrib/download_prerequisites']
-        workdir: '@THIS_SOURCE_DIR@'
+      - args: ["./contrib/download_prerequisites"]
+        workdir: "@THIS_SOURCE_DIR@"
 
-  - name: 'linux'
-    subdir: 'build'
-    git: 'https://github.com/torvalds/linux.git'
-    tag: 'v5.17'
-    version: '5.17'
+  - name: "linux"
+    subdir: "build"
+    git: "https://github.com/torvalds/linux.git"
+    tag: "v5.17"
+    version: "5.17"
 
-  - name: 'mlibc'
-    subdir: 'build'
-    git: 'https://github.com/managarm/mlibc.git'
-    branch: 'master'
-    version: '2.2.0'
+  - name: "mlibc"
+    subdir: "build"
+    git: "https://github.com/managarm/mlibc.git"
+    branch: "master"
+    version: "2.2.0"
 
-  - name: 'bash'
-    subdir: 'build'
-    git: 'https://github.com/bminor/bash.git'
-    tag: 'bash-5.1'
-    version: '5.1'
+  - name: "bash"
+    subdir: "build"
+    git: "https://github.com/bminor/bash.git"
+    tag: "bash-5.1"
+    version: "5.1"
 
-  - name: 'coreutils'
-    subdir: 'build'
-    url: 'https://ftp.gnu.org/gnu/coreutils/coreutils-9.0.tar.xz'
-    format: 'tar.xz'
-    extract_path: 'coreutils-9.0'
+  - name: "coreutils"
+    subdir: "build"
+    url: "https://ftp.gnu.org/gnu/coreutils/coreutils-9.0.tar.xz"
+    format: "tar.xz"
+    extract_path: "coreutils-9.0"
     patch-path-strip: 1
-    version: '9.0'
+    version: "9.0"
 
 declare_options:
   - name: arch
@@ -47,58 +47,58 @@ declare_options:
     default: x86_64-linux-mlibc
 
 tools:
-  - name: 'cross-binutils'
-    from_source: 'binutils'
+  - name: "cross-binutils"
+    from_source: "binutils"
     configure:
       - args:
-        - '@THIS_SOURCE_DIR@/configure'
-        - '--prefix=@PREFIX@'
-        - '--with-sysroot=@SYSROOT_DIR@'
-        - '--target=@OPTION:arch-triple@'
-        - '--disable-nls'
-        - '--disable-werror'
+          - "@THIS_SOURCE_DIR@/configure"
+          - "--prefix=@PREFIX@"
+          - "--with-sysroot=@SYSROOT_DIR@"
+          - "--target=@OPTION:arch-triple@"
+          - "--disable-nls"
+          - "--disable-werror"
     compile:
-      - args: ['make', '-j', '@PARALLELISM@']
+      - args: ["make", "-j", "@PARALLELISM@"]
     install:
-      - args: ['make', 'install']
+      - args: ["make", "install"]
 
-  - name: 'cross-gcc'
-    from_source: 'gcc'
+  - name: "cross-gcc"
+    from_source: "gcc"
     tools_required:
-      - tool: 'cross-binutils'
+      - tool: "cross-binutils"
         recursive: true
     configure:
       - args:
-        - '@THIS_SOURCE_DIR@/configure'
-        - '--prefix=@PREFIX@'
-        - '--with-sysroot=@SYSROOT_DIR@'
-        - '--target=@OPTION:arch-triple@'
-        - '--enable-languages=c,c++'
-        - '--disable-multilib'
-        - '--disable-nls'
-        - '--enable-initfini-array'
-        - '--enable-libstdcxx-filesystem-ts'
+          - "@THIS_SOURCE_DIR@/configure"
+          - "--prefix=@PREFIX@"
+          - "--with-sysroot=@SYSROOT_DIR@"
+          - "--target=@OPTION:arch-triple@"
+          - "--enable-languages=c,c++"
+          - "--disable-multilib"
+          - "--disable-nls"
+          - "--enable-initfini-array"
+          - "--enable-libstdcxx-filesystem-ts"
     stages:
-      - name: 'compiler'
-        pkgs_required: ['mlibc-headers']
+      - name: "compiler"
+        pkgs_required: ["mlibc-headers"]
         compile:
-          - args: ['make', '-j', '@PARALLELISM@', 'all-gcc']
+          - args: ["make", "-j", "@PARALLELISM@", "all-gcc"]
         install:
-          - args: ['make', 'install-gcc']
-          - args: ['mkdir', '-p', '@PREFIX@/@OPTION:arch-triple@/bin']
-          - args: ['ln', '-sf', '../../../cross-binutils/@OPTION:arch-triple@/bin/as', '@PREFIX@/@OPTION:arch-triple@/bin/as']
-          - args: ['ln', '-sf', '../../../cross-binutils/@OPTION:arch-triple@/bin/ld', '@PREFIX@/@OPTION:arch-triple@/bin/ld']
+          - args: ["make", "install-gcc"]
+          - args: ["mkdir", "-p", "@PREFIX@/@OPTION:arch-triple@/bin"]
+          - args: ["ln", "-sf", "../../../cross-binutils/@OPTION:arch-triple@/bin/as", "@PREFIX@/@OPTION:arch-triple@/bin/as"]
+          - args: ["ln", "-sf", "../../../cross-binutils/@OPTION:arch-triple@/bin/ld", "@PREFIX@/@OPTION:arch-triple@/bin/ld"]
 
-      - name: 'libgcc'
+      - name: "libgcc"
         tools_required:
-          - tool: 'cross-gcc'
-            stage_dependencies: ['compiler']
+          - tool: "cross-gcc"
+            stage_dependencies: ["compiler"]
         pkgs_required:
-          - 'mlibc'
+          - "mlibc"
         compile:
-          - args: ['make', '-j', '@PARALLELISM@', 'all-target-libgcc']
+          - args: ["make", "-j", "@PARALLELISM@", "all-target-libgcc"]
         install:
-          - args: ['make', 'install-target-libgcc']
+          - args: ["make", "install-target-libgcc"]
 
       # TODO: Figure out how to build this fucker
       # - name: 'libstdc++'
@@ -111,91 +111,136 @@ tools:
       #     - args: ['make', 'install-strip-target-libstdc++-v3']
 
 packages:
-  - name: 'kernel-headers'
-    from_source: 'linux'
+  - name: "base-files"
+    source:
+      subdir: "meta-sources"
+      version: "1.0"
+    build:
+      - args: |
+          mkdir -pv @THIS_COLLECT_DIR@/usr/{,local/}{bin,include,lib,sbin,src}
+
+          ln -sfv usr/bin @THIS_COLLECT_DIR@/bin
+          ln -sfv usr/lib @THIS_COLLECT_DIR@/lib
+          ln -sfv usr/sbin @THIS_COLLECT_DIR@/sbin
+
+          mkdir -pv @THIS_COLLECT_DIR@/{boot,home,mnt,opt,srv}
+          mkdir -pv @THIS_COLLECT_DIR@/etc/{opt,sysconfig}
+          mkdir -pv @THIS_COLLECT_DIR@/lib/firmware
+          mkdir -pv @THIS_COLLECT_DIR@/media/{floppy,cdrom}
+          mkdir -pv @THIS_COLLECT_DIR@/usr/local/{bin,lib,sbin}
+          mkdir -pv @THIS_COLLECT_DIR@/usr/{,local/}share/{color,dict,doc,info,locale,man}
+          mkdir -pv @THIS_COLLECT_DIR@/usr/{,local/}share/{misc,terminfo,zoneinfo}
+          mkdir -pv @THIS_COLLECT_DIR@/usr/{,local/}share/man/man{1..8}
+          mkdir -pv @THIS_COLLECT_DIR@/var/{cache,local,log,mail,opt,spool}
+          mkdir -pv @THIS_COLLECT_DIR@/var/lib/{color,misc,locate}
+
+          install -dv -m 0750 @THIS_COLLECT_DIR@/root
+          install -dv -m 1777 @THIS_COLLECT_DIR@/tmp @THIS_COLLECT_DIR@/var/tmp
+
+          cp @THIS_SOURCE_DIR@/{group,hosts,passwd,profile} @THIS_COLLECT_DIR@/etc
+          cp @THIS_SOURCE_DIR@/.bashrc @THIS_COLLECT_DIR@/root
+
+          touch @THIS_COLLECT_DIR@/{boot,home,mnt,opt,root,srv,tmp}/.keep
+          touch @THIS_COLLECT_DIR@/etc/{opt,sysconfig}/.keep
+          touch @THIS_COLLECT_DIR@/lib/firmware/.keep
+          touch @THIS_COLLECT_DIR@/media/{floppy,cdrom}/.keep
+          touch @THIS_COLLECT_DIR@/usr/{,local/}{bin,include,lib,sbin,src}/.keep
+          touch @THIS_COLLECT_DIR@/usr/local/{bin,lib,sbin}/.keep
+          touch @THIS_COLLECT_DIR@/usr/{,local/}share/{color,dict,doc,info,locale,man}/.keep
+          touch @THIS_COLLECT_DIR@/usr/{,local/}share/{misc,terminfo,zoneinfo}/.keep
+          touch @THIS_COLLECT_DIR@/usr/{,local/}share/man/man{1..8}/.keep
+          touch @THIS_COLLECT_DIR@/var/{cache,local,log,mail,opt,spool}/.keep
+          touch @THIS_COLLECT_DIR@/var/lib/{color,misc,locate}/.keep
+          touch @THIS_COLLECT_DIR@/{tmp,var/tmp}/.keep
+
+          ln -sfv run @THIS_COLLECT_DIR@/var/run
+          ln -sfv run/lock @THIS_COLLECT_DIR@/var/lock
+
+  - name: "kernel-headers"
+    from_source: "linux"
     implict_package: true
     configure:
-      - args: ['rsync', '-ar', '@THIS_SOURCE_DIR@/', '@THIS_BUILD_DIR@/']
+      - args: ["rsync", "-ar", "@THIS_SOURCE_DIR@/", "@THIS_BUILD_DIR@/"]
     build:
-      - args: ['make', 'headers']
-      - args: ['find', 'usr/include', '-name', '".*"', '-delete']
-      - args: ['rm', 'usr/include/Makefile']
-      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/usr']
-      - args: ['cp', '-rv', 'usr/include', '@THIS_COLLECT_DIR@/usr']
+      - args: ["make", "headers"]
+      - args: ["find", "usr/include", "-name", '".*"', "-delete"]
+      - args: ["rm", "usr/include/Makefile"]
+      - args: ["mkdir", "-pv", "@THIS_COLLECT_DIR@/usr"]
+      - args: ["cp", "-rv", "usr/include", "@THIS_COLLECT_DIR@/usr"]
 
   # TODO: Build the kernel itself too
 
-  - name: 'mlibc-headers'
-    from_source: 'mlibc'
+  - name: "mlibc-headers"
+    from_source: "mlibc"
     implict_package: true
-    pkgs_required: ['kernel-headers']
+    pkgs_required: ["kernel-headers"]
     configure:
       - args:
-        - 'meson'
-        - '--cross-file'
-        - '@SOURCE_ROOT@/cross.ini'
-        - '--prefix=/usr'
-        - '-Dheaders_only=true'
-        - '-Ddisable_iconv_option=true'
-        - '-Dbuildtype=debug'
-        - '@THIS_SOURCE_DIR@'
+          - "meson"
+          - "--cross-file"
+          - "@SOURCE_ROOT@/cross.ini"
+          - "--prefix=/usr"
+          - "-Dheaders_only=true"
+          - "-Ddisable_iconv_option=true"
+          - "-Dbuildtype=debug"
+          - "@THIS_SOURCE_DIR@"
     build:
-      - args: ['ninja']
-      - args: ['ninja', 'install']
+      - args: ["ninja"]
+      - args: ["ninja", "install"]
         environ:
-          DESTDIR: '@THIS_COLLECT_DIR@'
+          DESTDIR: "@THIS_COLLECT_DIR@"
 
-  - name: 'mlibc'
-    from_source: 'mlibc'
+  - name: "mlibc"
+    from_source: "mlibc"
     tools_required:
-      - tool: 'cross-gcc'
-        stage_dependencies: ['compiler']
+      - tool: "cross-gcc"
+        stage_dependencies: ["compiler"]
     implict_package: true
-    pkgs_required: ['mlibc-headers']
+    pkgs_required: ["mlibc-headers"]
     configure:
       - args:
-        - 'meson'
-        - '--cross-file'
-        - '@SOURCE_ROOT@/cross.ini'
-        - '--prefix=/usr'
-        - '--libdir=lib'
-        - '-Dmlibc_no_headers=true'
-        - '-Ddisable_iconv_option=true'
-        - '-Dbuildtype=debug'
-        - '@THIS_SOURCE_DIR@'
+          - "meson"
+          - "--cross-file"
+          - "@SOURCE_ROOT@/cross.ini"
+          - "--prefix=/usr"
+          - "--libdir=lib"
+          - "-Dmlibc_no_headers=true"
+          - "-Ddisable_iconv_option=true"
+          - "-Dbuildtype=debug"
+          - "@THIS_SOURCE_DIR@"
     build:
-      - args: ['ninja']
-      - args: ['ninja', 'install']
+      - args: ["ninja"]
+      - args: ["ninja", "install"]
         environ:
-          DESTDIR: '@THIS_COLLECT_DIR@'
+          DESTDIR: "@THIS_COLLECT_DIR@"
 
-  - name: 'bash'
-    from_source: 'bash'
-    tools_required: ['cross-gcc']
-    pkgs_required: ['mlibc']
+  - name: "bash"
+    from_source: "bash"
+    tools_required: ["cross-gcc"]
+    pkgs_required: ["mlibc"]
     configure:
       - args:
-        - '@THIS_SOURCE_DIR@/configure'
-        - '--host=@OPTION:arch-triple@'
-        - '--prefix=/usr'
-        - '--without-bash-malloc'
-        - '--disable-nls'
+          - "@THIS_SOURCE_DIR@/configure"
+          - "--host=@OPTION:arch-triple@"
+          - "--prefix=/usr"
+          - "--without-bash-malloc"
+          - "--disable-nls"
     build:
-      - args: ['make', '-j', '@PARALLELISM@']
-      - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
+      - args: ["make", "-j", "@PARALLELISM@"]
+      - args: ["make", "DESTDIR=@THIS_COLLECT_DIR@", "install"]
 
-  - name: 'coreutils'
-    from_source: 'coreutils'
-    tools_required: ['cross-gcc']
-    pkgs_required: ['mlibc']
+  - name: "coreutils"
+    from_source: "coreutils"
+    tools_required: ["cross-gcc"]
+    pkgs_required: ["mlibc"]
     configure:
       - args:
-        - '@THIS_SOURCE_DIR@/configure'
-        - '--host=@OPTION:arch-triple@'
-        - '--prefix=/usr'
-        - '--enable-install-program=hostname'
-        - '--enable-no-install-program=kill,uptime'
-        - 'CFLAGS=-DSLOW_BUT_NO_HACKS'
+          - "@THIS_SOURCE_DIR@/configure"
+          - "--host=@OPTION:arch-triple@"
+          - "--prefix=/usr"
+          - "--enable-install-program=hostname"
+          - "--enable-no-install-program=kill,uptime"
+          - "CFLAGS=-DSLOW_BUT_NO_HACKS"
     build:
-      - args: ['make', '-j', '@PARALLELISM@']
-      - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
+      - args: ["make", "-j", "@PARALLELISM@"]
+      - args: ["make", "DESTDIR=@THIS_COLLECT_DIR@", "install"]
