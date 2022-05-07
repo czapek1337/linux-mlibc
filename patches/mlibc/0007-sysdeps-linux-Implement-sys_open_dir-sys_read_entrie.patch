@@ -1,0 +1,43 @@
+From cf4315a3a8ac8fdfbfa3111a6616a065674b2974 Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Sat, 9 Apr 2022 18:41:57 +0200
+Subject: [PATCH 2/2] sysdeps/linux: Implement sys_open_dir, sys_read_entries
+
+---
+ sysdeps/linux/generic/sysdeps.cpp | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/sysdeps/linux/generic/sysdeps.cpp b/sysdeps/linux/generic/sysdeps.cpp
+index 526f20b..18ad503 100644
+--- a/sysdeps/linux/generic/sysdeps.cpp
++++ b/sysdeps/linux/generic/sysdeps.cpp
+@@ -59,6 +59,7 @@
+ #define NR_sigaltstack 131
+ #define NR_arch_prctl 158
+ #define NR_sys_futex 202
++#define NR_getdents64 217
+ #define NR_clock_gettime 228
+ #define NR_exit_group 231
+ #define NR_tgkill 234
+@@ -147,6 +148,18 @@ int sys_seek(int fd, off_t offset, int whence, off_t *new_offset) {
+ 	return 0;
+ }
+ 
++int sys_open_dir(const char *path, int *fd) {
++	return sys_open(path, O_DIRECTORY, fd);
++}
++
++int sys_read_entries(int handle, void *buffer, size_t max_size, size_t *bytes_read) {
++	auto ret = do_syscall(NR_getdents64, handle, buffer, max_size);
++	if(int e = sc_error(ret); e)
++		return e;
++	*bytes_read = sc_int_result<int>(ret);
++	return 0;
++}
++
+ int sys_vm_map(void *hint, size_t size, int prot, int flags,
+ 		int fd, off_t offset, void **window) {
+ 	auto ret = do_syscall(NR_mmap, hint, size, prot, flags, fd, offset);
+-- 
+2.35.1
+

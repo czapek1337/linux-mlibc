@@ -1,0 +1,40 @@
+From 8e49d6e2fef670d1ab78b768e53eec5e0ec87d0e Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Sun, 8 May 2022 01:18:27 +0200
+Subject: [PATCH 2/3] options/{internal,posix}: provide an empty path instead
+ of nullptr for sys_stat
+
+---
+ options/internal/include/mlibc/file-window.hpp | 2 +-
+ options/posix/generic/sys-stat-stubs.cpp       | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/options/internal/include/mlibc/file-window.hpp b/options/internal/include/mlibc/file-window.hpp
+index 43ca9b2..9514193 100644
+--- a/options/internal/include/mlibc/file-window.hpp
++++ b/options/internal/include/mlibc/file-window.hpp
+@@ -19,7 +19,7 @@ struct file_window {
+ 			__ensure(!"cannot proceed without sys_stat");
+ 		}
+ 		struct stat info;
+-		if(mlibc::sys_stat(mlibc::fsfd_target::fd, fd, nullptr, 0, &info))
++		if(mlibc::sys_stat(mlibc::fsfd_target::fd, fd, "", 0, &info))
+ 			mlibc::panicLogger() << "mlibc: Error getting TZinfo stats" << frg::endlog;
+ 
+ #ifdef MLIBC_MAP_FILE_WINDOWS
+diff --git a/options/posix/generic/sys-stat-stubs.cpp b/options/posix/generic/sys-stat-stubs.cpp
+index 90cd3d8..5645d1b 100644
+--- a/options/posix/generic/sys-stat-stubs.cpp
++++ b/options/posix/generic/sys-stat-stubs.cpp
+@@ -197,7 +197,7 @@ int fstat(int fd, struct stat *result) {
+ 		errno = ENOSYS;
+ 		return -1;
+ 	}
+-	if(int e = mlibc::sys_stat(mlibc::fsfd_target::fd, fd, nullptr, 0, result); e) {
++	if(int e = mlibc::sys_stat(mlibc::fsfd_target::fd, fd, "", 0, result); e) {
+ 		errno = e;
+ 		return -1;
+ 	}
+-- 
+2.35.1
+

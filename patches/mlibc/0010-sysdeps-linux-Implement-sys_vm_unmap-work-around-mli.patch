@@ -1,0 +1,38 @@
+From 2adc66486d1a317ccbe4dd8537b272d2f536edeb Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Sun, 8 May 2022 01:19:19 +0200
+Subject: [PATCH 3/3] sysdeps/linux: Implement sys_vm_unmap
+
+---
+ sysdeps/linux/generic/sysdeps.cpp | 14 +++++++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/sysdeps/linux/generic/sysdeps.cpp b/sysdeps/linux/generic/sysdeps.cpp
+index 0584f72..133efc0 100644
+--- a/sysdeps/linux/generic/sysdeps.cpp
++++ b/sysdeps/linux/generic/sysdeps.cpp
+@@ -21,6 +21,7 @@
+ #define NR_lseek 8
+ #define NR_mmap 9
+ #define NR_mprotect 10
++#define NR_munmap 11
+ #define NR_sigaction 13
+ #define NR_rt_sigprocmask 14
+ #define NR_ioctl 16
+@@ -179,7 +180,13 @@ int sys_vm_map(void *hint, size_t size, int prot, int flags,
+ 	*window = sc_ptr_result<void>(ret);
+ 	return 0;
+ }
+-int sys_vm_unmap(void *pointer, size_t size) STUB_ONLY
++
++int sys_vm_unmap(void *pointer, size_t size) {
++        auto ret = do_syscall(NR_munmap, pointer, size);
++        if(int e = sc_error(ret); e)
++                return e;
++        return 0;
++}
+ 
+ // All remaining functions are disabled in ldso.
+ #ifndef MLIBC_BUILDING_RTDL
+2.35.1
+
