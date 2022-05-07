@@ -68,7 +68,7 @@ case $2 in
     ;;
   chroot)
     mount_kvfs
-    chroot $ROOT /usr/bin/env -i HOME=/root TERM="$TERM" PS1='(chroot) \u:\w\$ ' PATH=/usr/bin:/usr/sbin /bin/bash --login
+    chroot $ROOT /usr/bin/env -i HOME=/root TERM="$TERM" PATH=/usr/bin:/usr/sbin /bin/bash --login
     ;;
   *)
     show_help
