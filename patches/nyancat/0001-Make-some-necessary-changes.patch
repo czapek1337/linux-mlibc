@@ -1,0 +1,27 @@
+From 3da64a50bb70371a8d0c2fe32894a84cd64e2a2b Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Sun, 8 May 2022 23:11:33 +0200
+Subject: [PATCH] Make some necessary changes
+
+---
+ src/nyancat.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/src/nyancat.c b/src/nyancat.c
+index 6989623..200c681 100644
+--- a/src/nyancat.c
++++ b/src/nyancat.c
+@@ -66,10 +66,7 @@
+ #include <getopt.h>
+ 
+ #include <sys/ioctl.h>
+-
+-#ifndef TIOCGWINSZ
+ #include <termios.h>
+-#endif
+ 
+ #ifdef ECHO
+ #undef ECHO
+-- 
+2.35.1
+
