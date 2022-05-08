@@ -1,0 +1,53 @@
+From eb4eed0c243b6a8c43bbda8f2b96a9669adedeae Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Sun, 8 May 2022 22:53:30 +0200
+Subject: [PATCH 1/2] sysdeps/linux: Implement sys_rename and sys_renameat
+
+---
+ sysdeps/linux/generic/sysdeps.cpp | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/sysdeps/linux/generic/sysdeps.cpp b/sysdeps/linux/generic/sysdeps.cpp
+index 80d9ecd..02974ac 100644
+--- a/sysdeps/linux/generic/sysdeps.cpp
++++ b/sysdeps/linux/generic/sysdeps.cpp
+@@ -45,6 +45,7 @@
+ #define NR_fcntl 72
+ #define NR_getcwd 79
+ #define NR_chdir 80
++#define NR_rename 82
+ #define NR_mkdir 83
+ #define NR_rmdir 84
+ #define NR_unlink 87
+@@ -67,6 +68,7 @@
+ #define NR_tgkill 234
+ #define NR_newfstatat 262
+ #define NR_unlinkat 263
++#define NR_renameat 264
+ #define NR_pselect6 270
+ #define NR_dup3 292
+ #define NR_pipe2 293
+@@ -619,6 +621,20 @@ int sys_chdir(const char *path) {
+ 	return 0;
+ }
+ 
++int sys_rename(const char *old_path, const char *new_path) {
++	auto ret = do_syscall(NR_rename, old_path, new_path);
++	if (int e = sc_error(ret); e)
++		return e;
++	return 0;
++}
++
++int sys_renameat(int old_dirfd, const char *old_path, int new_dirfd, const char *new_path) {
++	auto ret = do_syscall(NR_renameat, old_dirfd, old_path, new_dirfd, new_path);
++	if (int e = sc_error(ret); e)
++		return e;
++	return 0;
++}
++
+ int sys_rmdir(const char *path) {
+ 	auto ret = do_syscall(NR_rmdir, path);
+ 	if (int e = sc_error(ret); e)
+-- 
+2.35.1
+
