@@ -1,0 +1,35 @@
+sources:
+  - name: "python"
+    subdir: "build"
+    git: "https://github.com/python/cpython.git"
+    tag: "v3.8.2"
+    version: "3.8.2"
+    tools_required: ["cross-automake-v1.15", "cross-libtool", "cross-pkg-config"]
+    regenerate:
+      - args: ["autoreconf", "-fvi"]
+
+packages:
+  - name: "python"
+    from_source: "python"
+    tools_required: ["cross-gcc", "cross-pkg-config", "cross-python"]
+    pkgs_required: ["mlibc", "libexpat", "libffi"]
+    configure:
+      - args:
+          - "@THIS_SOURCE_DIR@/configure"
+          - "--host=@OPTION:arch-triple@"
+          - "--build=x86_64-linux-gnu"
+          - "--prefix=/usr"
+          - "--enable-shared"
+          - "--with-sysroot=@SYSROOT_DIR@" # Set libtool's lt_sysroot.
+          - "--with-system-ffi"
+          - "--with-system-expat"
+          - "--disable-ipv6"
+        environ:
+          CONFIG_SITE: "@SOURCE_ROOT@/misc/python-config-site"
+          PKG_CONFIG_SYSROOT_DIR: "@BUILD_ROOT@/system-root"
+          PKG_CONFIG_LIBDIR: "@BUILD_ROOT@/system-root/usr/lib/pkgconfig:@BUILD_ROOT@/system-root/usr/share/pkgconfig"
+    build:
+      - args: ["make", "-j", "@PARALLELISM@"]
+      - args: ["make", "install"]
+        environ:
+          DESTDIR: "@THIS_COLLECT_DIR@"
