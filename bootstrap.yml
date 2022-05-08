@@ -1,15 +1,59 @@
 sources:
+  - name: "tzdata"
+    subdir: "build"
+    url: "https://data.iana.org/time-zones/releases/tzdata2021e.tar.gz"
+    format: "tar.gz"
+    version: "2021e"
+
+  - name: "autoconf-v2.69"
+    subdir: "build"
+    url: "https://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.xz"
+    format: "tar.xz"
+    extract_path: "autoconf-2.69"
+    version: "2.69"
+
+  - name: "automake-v1.15"
+    subdir: "build"
+    git: "https://git.savannah.gnu.org/git/automake.git"
+    tag: "v1.15.1"
+    version: "1.15.1"
+    regenerate:
+      - args: ["./bootstrap"]
+
+  - name: "libtool"
+    subdir: "build"
+    git: "https://git.savannah.gnu.org/git/libtool.git"
+    tag: "v2.4.6"
+    version: "2.4.6"
+    tools_required: ["cross-automake-v1.15"]
+    regenerate:
+      - args: ["git", "submodule", "update", "--init"]
+      - args: ["./bootstrap"]
+
+  - name: "pkg-config"
+    subdir: "build"
+    git: "https://gitlab.freedesktop.org/pkg-config/pkg-config.git"
+    tag: "pkg-config-0.29.2"
+    version: "0.29.2"
+    tools_required: ["cross-automake-v1.15", "cross-libtool"]
+    regenerate:
+      - args: ["./autogen.sh"]
+        environ:
+          NOCONFIGURE: "yes"
+
   - name: "binutils"
     subdir: "build"
     git: "https://github.com/bminor/binutils-gdb.git"
     tag: "binutils-2_38"
     version: "2.38"
+    tools_required: ["cross-automake-v1.15"]
 
   - name: "gcc"
     subdir: "build"
     git: "https://github.com/gcc-mirror/gcc.git"
     tag: "releases/gcc-11.2.0"
     version: "11.2.0"
+    tools_required: ["cross-automake-v1.15"]
     regenerate:
       - args: ["./contrib/download_prerequisites"]
         workdir: "@THIS_SOURCE_DIR@"
@@ -28,17 +72,52 @@ sources:
 
   - name: "bash"
     subdir: "build"
-    git: "https://github.com/bminor/bash.git"
-    tag: "bash-5.1"
-    version: "5.1"
+    git: "https://git.savannah.gnu.org/git/bash.git"
+    branch: "master"
+    commit: "15409324f1974d41c183904ad575da7188058c1c"
+    version: "5.1.12"
+    tools_required: ["cross-automake-v1.15"]
+    regenerate:
+      - args: ["cp", "@BUILD_ROOT@/tools/cross-automake-v1.15/share/automake-1.15/config.sub", "@THIS_SOURCE_DIR@/support/"]
 
   - name: "coreutils"
     subdir: "build"
     url: "https://ftp.gnu.org/gnu/coreutils/coreutils-9.0.tar.xz"
     format: "tar.xz"
     extract_path: "coreutils-9.0"
-    patch-path-strip: 1
     version: "9.0"
+    tools_required: ["cross-automake-v1.15"]
+    regenerate:
+      - args: ["autoreconf", "-fvi"]
+
+  - name: "python"
+    subdir: "build"
+    git: "https://github.com/python/cpython.git"
+    tag: "v3.8.2"
+    version: "3.8.2"
+    tools_required: ["cross-automake-v1.15", "cross-libtool", "cross-pkg-config"]
+    regenerate:
+      - args: ["autoreconf", "-fvi"]
+
+  - name: "libexpat"
+    subdir: "build"
+    git: "https://github.com/libexpat/libexpat.git"
+    tag: "R_2_4_1"
+    version: "2.4.1"
+    tools_required: ["cross-automake-v1.15", "cross-libtool"]
+    regenerate:
+      - args: ["./buildconf.sh"]
+        workdir: "@THIS_SOURCE_DIR@/expat"
+
+  - name: "libffi"
+    subdir: "build"
+    git: "https://github.com/libffi/libffi.git"
+    tag: "v3.4.2"
+    version: "3.4.2"
+    tools_required: ["cross-automake-v1.15", "cross-libtool"]
+    regenerate:
+      - args: ["./autogen.sh"]
+      - args: ["cp", "@BUILD_ROOT@/tools/cross-automake-v1.15/share/automake-1.15/config.sub", "@THIS_SOURCE_DIR@/"]
 
 declare_options:
   - name: arch
@@ -47,8 +126,54 @@ declare_options:
     default: x86_64-linux-mlibc
 
 tools:
+  - name: "cross-autoconf-v2.69"
+    from_source: "autoconf-v2.69"
+    configure:
+      - args: ["@THIS_SOURCE_DIR@/configure", "--prefix=@PREFIX@"]
+    compile:
+      - args: ["make", "-j", "@PARALLELISM@"]
+    install:
+      - args: ["make", "install"]
+
+  - name: "cross-automake-v1.15"
+    from_source: "automake-v1.15"
+    tools_required:
+      - tool: "cross-autoconf-v2.69"
+        recursive: true
+    configure:
+      - args: ["@THIS_SOURCE_DIR@/configure", "--prefix=@PREFIX@", "MAKEINFO=/bin/true"]
+    compile:
+      - args: ["make", "-j", "@PARALLELISM@"]
+    install:
+      - args: ["make", "install"]
+      - args: ["ln", "-sf", "@PREFIX@/share/aclocal-1.15", "@PREFIX@/share/aclocal"]
+
+  - name: "cross-libtool"
+    exports_aclocal: true
+    from_source: "libtool"
+    tools_required: ["cross-automake-v1.15"]
+    configure:
+      - args: ["@THIS_SOURCE_DIR@/configure", "--prefix=@PREFIX@"]
+    compile:
+      - args: ["make", "-j", "@PARALLELISM@"]
+    install:
+      - args: ["make", "install"]
+
+  - name: "cross-pkg-config"
+    exports_aclocal: true
+    from_source: "pkg-config"
+    configure:
+      - args: ["@THIS_SOURCE_DIR@/configure", "--prefix=@PREFIX@", "--with-internal-glib"]
+    compile:
+      - args: ["make", "-j", "@PARALLELISM@"]
+    install:
+      - args: ["make", "install"]
+
   - name: "cross-binutils"
     from_source: "binutils"
+    tools_required:
+      - tool: "cross-automake-v1.15"
+        recursive: true
     configure:
       - args:
           - "@THIS_SOURCE_DIR@/configure"
@@ -109,11 +234,21 @@ tools:
         install:
           - args: ["make", "install-strip-target-libstdc++-v3"]
 
+  - name: "cross-python"
+    from_source: "python"
+    configure:
+      - args: ["@THIS_SOURCE_DIR@/configure", "--prefix=@PREFIX@"]
+    compile:
+      - args: ["make", "-j", "@PARALLELISM@"]
+    install:
+      - args: ["make", "install"]
+
 packages:
   - name: "base-files"
     source:
       subdir: "meta-sources"
       version: "1.0"
+    default: true
     build:
       - args: |
           mkdir -pv @THIS_COLLECT_DIR@/usr/{,local/}{bin,include,lib,sbin,src}
@@ -154,6 +289,52 @@ packages:
 
           ln -sfv run @THIS_COLLECT_DIR@/var/run
           ln -sfv run/lock @THIS_COLLECT_DIR@/var/lock
+
+  - name: "tzdata"
+    from_source: "tzdata"
+    default: true
+    configure:
+      - args: ["cp", "-r", "@THIS_SOURCE_DIR@/.", "@THIS_BUILD_DIR@"]
+    build:
+      # Create the required directories
+      - args: ["mkdir", "-p", "@THIS_COLLECT_DIR@/etc"]
+      - args: ["mkdir", "-p", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/posix"]
+      - args: ["mkdir", "-p", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/right"]
+      # Create the time zone files without leap seconds, convention puts these in both zoneinfo and zoneinfo/posix.
+      # After that. create time time zone files with leap seconds
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo", "@THIS_BUILD_DIR@/etcetera"]
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/posix", "@THIS_BUILD_DIR@/etcetera"]
+      - args: ["/usr/sbin/zic", "-L", "@THIS_SOURCE_DIR@/leapseconds", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/right", "@THIS_BUILD_DIR@/etcetera"]
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo", "@THIS_BUILD_DIR@/southamerica"]
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/posix", "@THIS_BUILD_DIR@/southamerica"]
+      - args: ["/usr/sbin/zic", "-L", "@THIS_SOURCE_DIR@/leapseconds", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/right", "@THIS_BUILD_DIR@/southamerica"]
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo", "@THIS_BUILD_DIR@/northamerica"]
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/posix", "@THIS_BUILD_DIR@/northamerica"]
+      - args: ["/usr/sbin/zic", "-L", "@THIS_SOURCE_DIR@/leapseconds", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/right", "@THIS_BUILD_DIR@/northamerica"]
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo", "@THIS_BUILD_DIR@/europe"]
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/posix", "@THIS_BUILD_DIR@/europe"]
+      - args: ["/usr/sbin/zic", "-L", "@THIS_SOURCE_DIR@/leapseconds", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/right", "@THIS_BUILD_DIR@/europe"]
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo", "@THIS_BUILD_DIR@/africa"]
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/posix", "@THIS_BUILD_DIR@/africa"]
+      - args: ["/usr/sbin/zic", "-L", "@THIS_SOURCE_DIR@/leapseconds", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/right", "@THIS_BUILD_DIR@/africa"]
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo", "@THIS_BUILD_DIR@/antarctica"]
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/posix", "@THIS_BUILD_DIR@/antarctica"]
+      - args: ["/usr/sbin/zic", "-L", "@THIS_SOURCE_DIR@/leapseconds", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/right", "@THIS_BUILD_DIR@/antarctica"]
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo", "@THIS_BUILD_DIR@/asia"]
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/posix", "@THIS_BUILD_DIR@/asia"]
+      - args: ["/usr/sbin/zic", "-L", "@THIS_SOURCE_DIR@/leapseconds", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/right", "@THIS_BUILD_DIR@/asia"]
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo", "@THIS_BUILD_DIR@/australasia"]
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/posix", "@THIS_BUILD_DIR@/australasia"]
+      - args: ["/usr/sbin/zic", "-L", "@THIS_SOURCE_DIR@/leapseconds", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/right", "@THIS_BUILD_DIR@/australasia"]
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo", "@THIS_BUILD_DIR@/backward"]
+      - args: ["/usr/sbin/zic", "-L", "/dev/null", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/posix", "@THIS_BUILD_DIR@/backward"]
+      - args: ["/usr/sbin/zic", "-L", "@THIS_SOURCE_DIR@/leapseconds", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo/right", "@THIS_BUILD_DIR@/backward"]
+      # Copy some needed files to their location
+      - args: ["cp", "@THIS_BUILD_DIR@/zone.tab", "@THIS_BUILD_DIR@/zone1970.tab", "@THIS_BUILD_DIR@/iso3166.tab", "@THIS_COLLECT_DIR@/usr/share/zoneinfo"]
+      # Create the posixrules file, POSIX requires daylight saving rules to be in accordance with US rules, thus use New York
+      - args: ["/usr/sbin/zic", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo", "-p", "America/New_York"]
+      # Default to UTC for localtime, this should be fixed, but that is pending xbstrap support.
+      - args: ["ln", "-sf", "/usr/share/zoneinfo/UTC", "@THIS_COLLECT_DIR@/etc/localtime"]
 
   - name: "kernel-headers"
     from_source: "linux"
@@ -243,3 +424,61 @@ packages:
     build:
       - args: ["make", "-j", "@PARALLELISM@"]
       - args: ["make", "DESTDIR=@THIS_COLLECT_DIR@", "install"]
+
+  - name: "python"
+    from_source: "python"
+    tools_required: ["cross-gcc", "cross-pkg-config", "cross-python"]
+    pkgs_required: ["mlibc", "libexpat", "libffi"]
+    configure:
+      - args:
+          - "@THIS_SOURCE_DIR@/configure"
+          - "--host=@OPTION:arch-triple@"
+          - "--build=x86_64-linux-gnu"
+          - "--prefix=/usr"
+          - "--enable-shared"
+          - "--with-sysroot=@SYSROOT_DIR@" # Set libtool's lt_sysroot.
+          - "--with-system-ffi"
+          - "--with-system-expat"
+          - "--disable-ipv6"
+        environ:
+          CONFIG_SITE: "@SOURCE_ROOT@/misc/python-config-site"
+          PKG_CONFIG_SYSROOT_DIR: "@BUILD_ROOT@/system-root"
+          PKG_CONFIG_LIBDIR: "@BUILD_ROOT@/system-root/usr/lib/pkgconfig:@BUILD_ROOT@/system-root/usr/share/pkgconfig"
+    build:
+      - args: ["make", "-j", "@PARALLELISM@"]
+      - args: ["make", "install"]
+        environ:
+          DESTDIR: "@THIS_COLLECT_DIR@"
+
+  - name: "libexpat"
+    from_source: "libexpat"
+    tools_required: ["cross-automake-v1.15", "cross-libtool", "cross-gcc"]
+    pkgs_required: ["mlibc"]
+    configure:
+      - args:
+          - "@THIS_SOURCE_DIR@/expat/configure"
+          - "--host=@OPTION:arch-triple@"
+          - "--prefix=/usr"
+          - "--with-sysroot=@SYSROOT_DIR@" # Set libtool's lt_sysroot.
+          - "--without-xmlwf"
+    build:
+      - args: ["make", "-j", "@PARALLELISM@"]
+      - args: ["make", "install"]
+        environ:
+          DESTDIR: "@THIS_COLLECT_DIR@"
+
+  - name: "libffi"
+    from_source: "libffi"
+    tools_required: ["cross-gcc"]
+    pkgs_required: ["mlibc"]
+    configure:
+      - args:
+          - "@THIS_SOURCE_DIR@/configure"
+          - "--host=@OPTION:arch-triple@"
+          - "--prefix=/usr"
+          - "--with-sysroot=@SYSROOT_DIR@" # Set libtool's lt_sysroot.
+    build:
+      - args: ["make", "-j", "@PARALLELISM@"]
+      - args: ["make", "install"]
+        environ:
+          DESTDIR: "@THIS_COLLECT_DIR@"

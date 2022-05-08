@@ -1,0 +1,26 @@
+From 5a614d7f924961006c02274f9538326064f181b0 Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Sun, 8 May 2022 18:27:25 +0200
+Subject: [PATCH 2/2] Use gettid instead of a direct syscall
+
+---
+ Python/thread_pthread.h | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/Python/thread_pthread.h b/Python/thread_pthread.h
+index 5678b05..100d7c6 100644
+--- a/Python/thread_pthread.h
++++ b/Python/thread_pthread.h
+@@ -329,8 +329,7 @@ PyThread_get_thread_native_id(void)
+     uint64_t native_id;
+     (void) pthread_threadid_np(NULL, &native_id);
+ #elif defined(__linux__)
+-    pid_t native_id;
+-    native_id = syscall(SYS_gettid);
++    pid_t native_id = gettid();
+ #elif defined(__FreeBSD__)
+     int native_id;
+     native_id = pthread_getthreadid_np();
+-- 
+2.35.1
+
