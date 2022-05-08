@@ -100,15 +100,14 @@ tools:
         install:
           - args: ["make", "install-target-libgcc"]
 
-      # TODO: Figure out how to build this fucker
-      # - name: 'libstdc++'
-      #   tools_required:
-      #     - tool: 'cross-gcc'
-      #       stage_dependencies: ['libgcc']
-      #   compile:
-      #     - args: ['make', '-j', '@PARALLELISM@', 'all-target-libstdc++-v3']
-      #   install:
-      #     - args: ['make', 'install-strip-target-libstdc++-v3']
+      - name: "libstdc++"
+        tools_required:
+          - tool: "cross-gcc"
+            stage_dependencies: ["libgcc"]
+        compile:
+          - args: ["make", "-j", "@PARALLELISM@", "all-target-libstdc++-v3"]
+        install:
+          - args: ["make", "install-strip-target-libstdc++-v3"]
 
 packages:
   - name: "base-files"

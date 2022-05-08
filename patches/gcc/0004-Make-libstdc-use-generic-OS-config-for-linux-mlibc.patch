@@ -1,0 +1,25 @@
+From 0a34c7a0876a46a5171062e1229b01155894e7fa Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Sun, 8 May 2022 03:31:56 +0200
+Subject: [PATCH] Make libstdc++ use generic OS config for linux-mlibc
+
+---
+ libstdc++-v3/configure.host | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libstdc++-v3/configure.host b/libstdc++-v3/configure.host
+index ec32980aa..1fe59f392 100644
+--- a/libstdc++-v3/configure.host
++++ b/libstdc++-v3/configure.host
+@@ -255,7 +255,7 @@ case "${host_os}" in
+   freebsd*)
+     os_include_dir="os/bsd/freebsd"
+     ;;
+-  linux-musl*)
++  linux-musl* | linux-mlibc*)
+     os_include_dir="os/generic"
+     ;;
+   gnu* | linux* | kfreebsd*-gnu | uclinux*)
+-- 
+2.35.1
+
