@@ -1,4 +1,5 @@
 imports:
+  - file: "ports/app-editors.yml"
   - file: "ports/app-shells.yml"
   - file: "ports/dev-lang.yml"
   - file: "ports/dev-libs.yml"
