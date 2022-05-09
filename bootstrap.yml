@@ -196,6 +196,25 @@ tools:
     install:
       - args: ["make", "install"]
 
+  - name: "cross-toolchain"
+    source:
+      subdir: "meta-sources"
+      version: "1.0"
+    tools_required:
+      - tool: "cross-autoconf-v2.69"
+        recursive: true
+      - tool: "cross-automake-v1.15"
+        recursive: true
+      - tool: "cross-binutils"
+        recursive: true
+      - tool: "cross-gcc"
+        recursive: true
+      - tool: "cross-pkg-config"
+        recursive: true
+    configure: []
+    compile: []
+    install: []
+
 packages:
   - name: "base-files"
     source:

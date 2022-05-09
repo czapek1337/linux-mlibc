@@ -12,7 +12,7 @@ sources:
 packages:
   - name: "bash"
     from_source: "bash"
-    tools_required: ["cross-gcc"]
+    tools_required: ["cross-toolchain"]
     pkgs_required: ["mlibc"]
     configure:
       - args:
