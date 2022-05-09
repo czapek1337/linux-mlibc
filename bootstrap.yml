@@ -1,8 +1,8 @@
 imports:
-  - file: "ports/app-misc.yml"
   - file: "ports/app-shells.yml"
   - file: "ports/dev-lang.yml"
   - file: "ports/dev-libs.yml"
+  - file: "ports/games-misc.yml"
   - file: "ports/sys-apps.yml"
   - file: "ports/sys-libs.yml"
 
