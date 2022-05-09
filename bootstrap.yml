@@ -90,9 +90,7 @@ tools:
 
   - name: "cross-automake-v1.15"
     from_source: "automake-v1.15"
-    tools_required:
-      - tool: "cross-autoconf-v2.69"
-        recursive: true
+    tools_required: ["cross-autoconf-v2.69"]
     configure:
       - args: ["@THIS_SOURCE_DIR@/configure", "--prefix=@PREFIX@", "MAKEINFO=/bin/true"]
     compile:
@@ -124,9 +122,7 @@ tools:
 
   - name: "cross-binutils"
     from_source: "binutils"
-    tools_required:
-      - tool: "cross-automake-v1.15"
-        recursive: true
+    tools_required: ["cross-automake-v1.15"]
     configure:
       - args:
           - "@THIS_SOURCE_DIR@/configure"
@@ -142,9 +138,7 @@ tools:
 
   - name: "cross-gcc"
     from_source: "gcc"
-    tools_required:
-      - tool: "cross-binutils"
-        recursive: true
+    tools_required: ["cross-binutils"]
     configure:
       - args:
           - "@THIS_SOURCE_DIR@/configure"
@@ -217,6 +211,7 @@ tools:
 
 packages:
   - name: "base-files"
+    implict_package: true
     source:
       subdir: "meta-sources"
       version: "1.0"
@@ -301,6 +296,7 @@ packages:
     tools_required:
       - tool: "cross-gcc"
         stage_dependencies: ["compiler"]
+      - tool: "cross-binutils"
     implict_package: true
     pkgs_required: ["mlibc-headers"]
     configure:

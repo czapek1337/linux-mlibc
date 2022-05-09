@@ -67,7 +67,6 @@ packages:
   - name: "ncurses"
     from_source: "ncurses"
     tools_required: ["cross-toolchain"]
-    pkgs_required: ["mlibc"]
     revision: 2
     configure:
       - args:
@@ -103,7 +102,7 @@ packages:
   - name: "readline"
     from_source: "readline"
     tools_required: ["cross-toolchain"]
-    pkgs_required: ["mlibc", "ncurses"]
+    pkgs_required: ["ncurses"]
     configure:
       - args: ["@THIS_SOURCE_DIR@/configure", "--host=@OPTION:arch-triple@", "--prefix=/usr", "--disable-static", "--enable-multibyte"]
     build:

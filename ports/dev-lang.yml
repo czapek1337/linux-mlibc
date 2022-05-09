@@ -5,14 +5,12 @@ sources:
     tag: "v3.8.2"
     version: "3.8.2"
     tools_required: ["cross-automake-v1.15", "cross-libtool", "cross-pkg-config"]
-    regenerate:
-      - args: ["autoreconf", "-fvi"]
 
 packages:
   - name: "python"
     from_source: "python"
-    tools_required: ["cross-gcc", "cross-pkg-config", "cross-python"]
-    pkgs_required: ["mlibc", "libexpat", "libffi"]
+    tools_required: ["cross-toolchain"]
+    pkgs_required: ["libexpat", "libffi"]
     configure:
       - args:
           - "@THIS_SOURCE_DIR@/configure"
@@ -24,6 +22,7 @@ packages:
           - "--with-system-ffi"
           - "--with-system-expat"
           - "--disable-ipv6"
+          - "--without-ensurepip"
         environ:
           CONFIG_SITE: "@SOURCE_ROOT@/misc/python-config-site"
           PKG_CONFIG_SYSROOT_DIR: "@BUILD_ROOT@/system-root"

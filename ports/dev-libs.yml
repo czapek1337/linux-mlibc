@@ -22,8 +22,7 @@ sources:
 packages:
   - name: "libexpat"
     from_source: "libexpat"
-    tools_required: ["cross-automake-v1.15", "cross-libtool", "cross-gcc"]
-    pkgs_required: ["mlibc"]
+    tools_required: ["cross-toolchain"]
     configure:
       - args:
           - "@THIS_SOURCE_DIR@/expat/configure"
@@ -39,8 +38,7 @@ packages:
 
   - name: "libffi"
     from_source: "libffi"
-    tools_required: ["cross-gcc"]
-    pkgs_required: ["mlibc"]
+    tools_required: ["cross-toolchain"]
     configure:
       - args:
           - "@THIS_SOURCE_DIR@/configure"

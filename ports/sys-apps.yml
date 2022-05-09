@@ -7,13 +7,12 @@ sources:
     version: "9.0"
     tools_required: ["cross-automake-v1.15"]
     regenerate:
-      - args: ["autoreconf", "-fvi"]
+      - args: ["cp", "@BUILD_ROOT@/tools/cross-automake-v1.15/share/automake-1.15/config.sub", "@THIS_SOURCE_DIR@/build-aux/"]
 
 packages:
   - name: "coreutils"
     from_source: "coreutils"
-    tools_required: ["cross-gcc"]
-    pkgs_required: ["mlibc"]
+    tools_required: ["cross-toolchain"]
     configure:
       - args:
           - "@THIS_SOURCE_DIR@/configure"

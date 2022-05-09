@@ -13,7 +13,6 @@ packages:
   - name: "bash"
     from_source: "bash"
     tools_required: ["cross-toolchain"]
-    pkgs_required: ["mlibc"]
     configure:
       - args:
           - "@THIS_SOURCE_DIR@/configure"
