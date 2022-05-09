@@ -5,6 +5,18 @@ sources:
     format: "tar.gz"
     version: "2021e"
 
+  - name: "ncurses"
+    subdir: "build"
+    git: "https://github.com/ThomasDickey/ncurses-snapshots.git"
+    tag: "v6_2"
+    version: "6.2"
+
+  - name: "readline"
+    subdir: "build"
+    git: "https://git.savannah.gnu.org/git/readline.git"
+    tag: "readline-8.1"
+    version: "8.1"
+
 packages:
   - name: "tzdata"
     from_source: "tzdata"
@@ -51,3 +63,51 @@ packages:
       - args: ["/usr/sbin/zic", "-d", "@THIS_COLLECT_DIR@/usr/share/zoneinfo", "-p", "America/New_York"]
       # Default to UTC for localtime, this should be fixed, but that is pending xbstrap support.
       - args: ["ln", "-sf", "/usr/share/zoneinfo/UTC", "@THIS_COLLECT_DIR@/etc/localtime"]
+
+  - name: "ncurses"
+    from_source: "ncurses"
+    tools_required: ["cross-toolchain"]
+    pkgs_required: ["mlibc"]
+    revision: 2
+    configure:
+      - args:
+          - "@THIS_SOURCE_DIR@/configure"
+          - "--host=@OPTION:arch-triple@"
+          - "--prefix=/usr"
+          - "--without-ada"
+          - "--enable-pc-files"
+          - "--with-shared"
+          - "--without-normal"
+          - "--with-manpage-format=normal"
+          - "--with-pkg-config-libdir=/usr/lib/pkgconfig"
+          - "--with-termlib"
+          - "--enable-widec"
+          - "--disable-stripping"
+        environ:
+          cf_cv_func_nanosleep: "yes"
+    build:
+      - args: ["make", "-j", "@PARALLELISM@"]
+      - args: ["make", "DESTDIR=@THIS_COLLECT_DIR@", "install"]
+      # As we build ncurses with wide character support, make some compatibility links
+      - args: |
+          for lib in ncurses form panel menu tinfo ; do
+              rm -vf @THIS_COLLECT_DIR@/usr/lib/lib${lib}.so
+              echo "INPUT(-l${lib}w)" > @THIS_COLLECT_DIR@/usr/lib/lib${lib}.so
+              ln -sfv ${lib}w.pc @THIS_COLLECT_DIR@/usr/lib/pkgconfig/${lib}.pc
+          done
+
+          rm -vf @THIS_COLLECT_DIR@/usr/lib/libcursesw.so
+          echo "INPUT(-lncursesw)" > @THIS_COLLECT_DIR@/usr/lib/libcursesw.so
+          ln -sfv libncurses.so @THIS_COLLECT_DIR@/usr/lib/libcurses.so
+
+  - name: "readline"
+    from_source: "readline"
+    tools_required: ["cross-toolchain"]
+    pkgs_required: ["mlibc", "ncurses"]
+    configure:
+      - args: ["@THIS_SOURCE_DIR@/configure", "--host=@OPTION:arch-triple@", "--prefix=/usr", "--disable-static", "--enable-multibyte"]
+    build:
+      - args: ["make", "-j", "@PARALLELISM@"]
+      - args: ["make", "DESTDIR=@THIS_COLLECT_DIR@", "install"]
+        environ:
+          DESTDIR: "@THIS_COLLECT_DIR@"

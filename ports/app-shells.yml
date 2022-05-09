@@ -21,6 +21,9 @@ packages:
           - "--prefix=/usr"
           - "--without-bash-malloc"
           - "--disable-nls"
+          - "--enable-readline"
+          - "--with-installed-readline=$SYSROOT_DIR$/usr"
+          - "--with-curses"
     build:
       - args: ["make", "-j", "@PARALLELISM@"]
       - args: ["make", "DESTDIR=@THIS_COLLECT_DIR@", "install"]
