@@ -28,6 +28,36 @@ sources:
     regenerate:
       - args: ["autoreconf", "-fvi"]
 
+  # - name: "findutils"
+  #   subdir: "build"
+  #   git: "https://git.savannah.gnu.org/git/findutils.git"
+  #   tag: "v4.8.0"
+  #   version: "4.8.0"
+  #   tools_required: ["cross-autoconf-v2.69", "cross-automake-v1.15", "cross-libtool", "cross-pkg-config"]
+  #   regenerate:
+  #     - args: ["./bootstrap"]
+  #     - args: ["cp", "@BUILD_ROOT@/tools/cross-automake-v1.15/share/automake-1.15/config.sub", "@THIS_SOURCE_DIR@/build-aux/"]
+
+  - name: "gawk"
+    subdir: "build"
+    git: "https://git.savannah.gnu.org/git/gawk.git"
+    tag: "gawk-4.2.1"
+    version: "4.2.1"
+    tools_required: ["cross-autoconf-v2.69", "cross-automake-v1.15"]
+    regenerate:
+      - args: sed -i 's/extras//' @THIS_SOURCE_DIR@/Makefile.in
+      - args: ["cp", "@BUILD_ROOT@/tools/cross-automake-v1.15/share/automake-1.15/config.sub", "@THIS_SOURCE_DIR@/"]
+
+  - name: "grep"
+    subdir: "build"
+    git: "https://git.savannah.gnu.org/git/grep.git"
+    tag: "v3.7"
+    version: "3.7"
+    tools_required: ["cross-autoconf-v2.69", "cross-automake-v1.15"]
+    regenerate:
+      - args: ["./bootstrap"]
+      - args: ["cp", "@BUILD_ROOT@/tools/cross-automake-v1.15/share/automake-1.15/config.sub", "@THIS_SOURCE_DIR@/build-aux/"]
+
 tools:
   - name: "cross-file"
     from_source: "file"
@@ -74,6 +104,49 @@ packages:
     pkgs_required: ["zlib"]
     configure:
       - args: ["@THIS_SOURCE_DIR@/configure", "--host=@OPTION:arch-triple@", "--prefix=/usr", "--disable-bzlib", "--disable-xzlib"]
+    build:
+      - args: ["make", "-j", "@PARALLELISM@"]
+      - args: ["make", "install"]
+        environ:
+          DESTDIR: "@THIS_COLLECT_DIR@"
+
+  # - name: "findutils"
+  #   from_source: "findutils"
+  #   tools_required: ["cross-toolchain", "cross-python"]
+  #   configure:
+  #     - args:
+  #         - "@THIS_SOURCE_DIR@/configure"
+  #         - "--host=@OPTION:arch-triple@"
+  #         - "--prefix=/usr"
+  #         - "--without-selinux"
+  #         - "--disable-nls"
+  #         - "--localstatedir=/var/lib/locate"
+  #       environ:
+  #         "PYTHON": "@BUILD_ROOT@/tools/cross-python/bin/python3"
+  #   build:
+  #     - args: ["make", "-j", "@PARALLELISM@"]
+  #     - args: ["make", "install"]
+  #       environ:
+  #         DESTDIR: "@THIS_COLLECT_DIR@"
+
+  - name: "gawk"
+    from_source: "gawk"
+    tools_required: ["cross-toolchain"]
+    configure:
+      - args: ["@THIS_SOURCE_DIR@/configure", "--host=@OPTION:arch-triple@", "--prefix=/usr", "--disable-nls", "--disable-extensions"]
+    build:
+      - args: ["make", "-j", "@PARALLELISM@"]
+      - args: ["make", "install"]
+        environ:
+          DESTDIR: "@THIS_COLLECT_DIR@"
+
+  - name: "grep"
+    from_source: "grep"
+    tools_required: ["cross-toolchain"]
+    pkgs_required: ["pcre"]
+    configure:
+      - args: ["@THIS_SOURCE_DIR@/configure", "--host=@OPTION:arch-triple@", "--prefix=/usr", "--disable-nls"]
+      - args: "sed -i s/-Werror//g @THIS_BUILD_DIR@/lib/Makefile"
     build:
       - args: ["make", "-j", "@PARALLELISM@"]
       - args: ["make", "install"]
