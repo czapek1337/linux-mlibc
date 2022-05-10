@@ -20,7 +20,7 @@ packages:
   - name: "python"
     from_source: "python"
     tools_required: ["cross-toolchain"]
-    pkgs_required: ["libexpat", "libffi"]
+    pkgs_required: ["libexpat", "libffi", "ncurses", "openssl", "readline", "zlib"]
     configure:
       - args:
           - "@THIS_SOURCE_DIR@/configure"

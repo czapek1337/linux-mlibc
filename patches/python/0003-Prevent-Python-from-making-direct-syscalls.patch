@@ -1,0 +1,25 @@
+From 00566bd449b085f3908e4c337bd06a7e12e06896 Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Tue, 10 May 2022 18:06:18 +0200
+Subject: [PATCH] Prevent Python from making direct syscalls
+
+---
+ Modules/_posixsubprocess.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Modules/_posixsubprocess.c b/Modules/_posixsubprocess.c
+index e693e53..82295a8 100644
+--- a/Modules/_posixsubprocess.c
++++ b/Modules/_posixsubprocess.c
+@@ -243,7 +243,7 @@ _close_fds_by_brute_force(long start_fd, PyObject *py_fds_to_keep)
+ }
+ 
+ 
+-#if defined(__linux__) && defined(HAVE_SYS_SYSCALL_H)
++#if defined(__linux__) && defined(HAVE_SYS_SYSCALL_H) && 0
+ /* It doesn't matter if d_name has room for NAME_MAX chars; we're using this
+  * only to read a directory of short file descriptor number names.  The kernel
+  * will return an error if we didn't give it enough space.  Highly Unlikely.
+-- 
+2.35.1
+
