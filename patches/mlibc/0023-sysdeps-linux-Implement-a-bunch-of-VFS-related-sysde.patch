@@ -1,0 +1,87 @@
+From c531471979c144b2d198e21db07281ca7963652e Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Tue, 10 May 2022 21:36:04 +0200
+Subject: [PATCH] sysdeps/linux: Implement a bunch of VFS related sysdeps
+
+---
+ sysdeps/linux/generic/sysdeps.cpp | 42 +++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
+
+diff --git a/sysdeps/linux/generic/sysdeps.cpp b/sysdeps/linux/generic/sysdeps.cpp
+index 39cc537..d274b5b 100644
+--- a/sysdeps/linux/generic/sysdeps.cpp
++++ b/sysdeps/linux/generic/sysdeps.cpp
+@@ -53,6 +53,10 @@
+ #define NR_unlink 87
+ #define NR_symlink 88
+ #define NR_readlink 89
++#define NR_chmod 90
++#define NR_fchmod 91
++#define NR_chown 92
++#define NR_fchown 93
+ #define NR_getrlimit 97
+ #define NR_getuid 102
+ #define NR_getgid 104
+@@ -77,7 +81,10 @@
+ #define NR_newfstatat 262
+ #define NR_unlinkat 263
+ #define NR_renameat 264
++#define NR_symlinkat 266
++#define NR_fchmodat 268
+ #define NR_pselect6 270
++#define NR_utimensat 280
+ #define NR_dup3 292
+ #define NR_pipe2 293
+ #define NR_getrandom 318
+@@ -197,6 +204,34 @@ int sys_read_entries(int handle, void *buffer, size_t max_size, size_t *bytes_re
+ 	return 0;
+ }
+ 
++int sys_chmod(const char *pathname, mode_t mode) {
++	auto ret = do_cp_syscall(NR_chmod, pathname, mode);
++	if(int e = sc_error(ret); e)
++		return e;
++	return 0;
++}
++
++int sys_fchmod(int fd, mode_t mode) {
++	auto ret = do_cp_syscall(NR_fchmod, fd, mode);
++	if(int e = sc_error(ret); e)
++		return e;
++	return 0;
++}
++
++int sys_fchmodat(int fd, const char *pathname, mode_t mode, int flags) {
++	auto ret = do_cp_syscall(NR_fchmodat, fd, pathname, mode, flags);
++	if(int e = sc_error(ret); e)
++		return e;
++	return 0;
++}
++
++int sys_utimensat(int dirfd, const char *pathname, const struct timespec times[2], int flags) {
++  auto ret = do_cp_syscall(NR_utimensat, dirfd, pathname, times, flags);
++  if (int e = sc_error(ret); e)
++    return e;
++  return 0;
++}
++
+ int sys_vm_map(void *hint, size_t size, int prot, int flags,
+ 		int fd, off_t offset, void **window) {
+ 	auto ret = do_syscall(NR_mmap, hint, size, prot, flags, fd, offset);
+@@ -666,6 +701,13 @@ int sys_symlink(const char *target_path, const char *link_path) {
+ 	return 0;
+ }
+ 
++int sys_symlinkat(const char *target_path, int dirfd, const char *link_path) {
++	auto ret = do_syscall(NR_symlinkat, target_path, dirfd, link_path);
++	if (int e = sc_error(ret); e)
++		return e;
++	return 0;
++}
++
+ int sys_chdir(const char *path) {
+ 	auto ret = do_syscall(NR_chdir, path);
+ 	if (int e = sc_error(ret); e)
+-- 
+2.36.1
+
