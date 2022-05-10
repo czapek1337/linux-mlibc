@@ -1,0 +1,36 @@
+From 181a6143ee611624a56e032f0531b67cec16faca Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Tue, 10 May 2022 06:24:25 +0200
+Subject: [PATCH] sysdeps/linux: Implement sys_getrlimit
+
+---
+ sysdeps/linux/generic/sysdeps.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/sysdeps/linux/generic/sysdeps.cpp b/sysdeps/linux/generic/sysdeps.cpp
+index 0429f4c..ac94ab2 100644
+--- a/sysdeps/linux/generic/sysdeps.cpp
++++ b/sysdeps/linux/generic/sysdeps.cpp
+@@ -53,6 +53,7 @@
+ #define NR_unlink 87
+ #define NR_symlink 88
+ #define NR_readlink 89
++#define NR_getrlimit 97
+ #define NR_getuid 102
+ #define NR_getgid 104
+ #define NR_geteuid 107
+@@ -700,4 +701,11 @@ int sys_getrandom(void *buffer, size_t length, int flags, ssize_t *bytes_written
+   return 0;
+ }
+ 
++int sys_getrlimit(int resource, struct rlimit *limit) {
++	auto ret = do_syscall(NR_getrlimit, resource, limit);
++	if (int e = sc_error(ret); e)
++		return e;
++	return 0;
++}
++
+ } // namespace mlibc
+-- 
+2.35.1
+
