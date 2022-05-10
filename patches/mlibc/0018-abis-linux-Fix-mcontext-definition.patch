@@ -1,0 +1,100 @@
+From 3d160a68aaacdeea06347401611426ac984857f5 Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Tue, 10 May 2022 16:01:35 +0200
+Subject: [PATCH 2/2] abis/linux: Fix mcontext definition
+
+---
+ abis/linux/x86_64/signal.h        | 56 +++++++++++++++----------------
+ sysdeps/linux/generic/sysdeps.cpp |  2 +-
+ 2 files changed, 29 insertions(+), 29 deletions(-)
+
+diff --git a/abis/linux/x86_64/signal.h b/abis/linux/x86_64/signal.h
+index be3c862..4036c97 100644
+--- a/abis/linux/x86_64/signal.h
++++ b/abis/linux/x86_64/signal.h
+@@ -173,6 +173,31 @@ typedef struct __stack {
+ #define SI_USER 0
+ #define SI_KERNEL 128
+ 
++#define REG_R8 0
++#define REG_R9 1
++#define REG_R10 2
++#define REG_R11 3
++#define REG_R12 4
++#define REG_R13 5
++#define REG_R14 6
++#define REG_R15 7
++#define REG_RDI 8
++#define REG_RSI 9
++#define REG_RBP 10
++#define REG_RBX 11
++#define REG_RDX 12
++#define REG_RAX 13
++#define REG_RCX 14
++#define REG_RSP 15
++#define REG_RIP 16
++#define REG_EFL 17
++#define REG_CSGSFS 18
++#define REG_ERR 19
++#define REG_TRAPNO 20
++#define REG_OLDMASK 21
++#define REG_CR2 22
++#define NGREG 23
++
+ struct sigevent {
+ 	union sigval sigev_value;
+ 	int sigev_notify;
+@@ -225,34 +250,9 @@ struct _fpstate {
+ };
+ 
+ typedef struct {
+-	unsigned long r8;
+-	unsigned long r9;
+-	unsigned long r10;
+-	unsigned long r11;
+-	unsigned long r12;
+-	unsigned long r13;
+-	unsigned long r14;
+-	unsigned long r15;
+-	unsigned long rdi;
+-	unsigned long rsi;
+-	unsigned long rbp;
+-	unsigned long rbx;
+-	unsigned long rdx;
+-	unsigned long rax;
+-	unsigned long rcx;
+-	unsigned long rsp;
+-	unsigned long rip;
+-	unsigned long eflags;
+-	unsigned short cs;
+-	unsigned short gs;
+-	unsigned short fs;
+-	unsigned short __pad0;
+-	unsigned long err;
+-	unsigned long trapno;
+-	unsigned long oldmask;
+-	unsigned long cr2;
+-	struct _fpstate * fpstate;
+-	unsigned long __reserved1 [8];
++  unsigned long gregs[NGREG];
++  struct _fpstate *fpstate;
++  unsigned long __reserved1[8];
+ } mcontext_t;
+ 
+ #ifdef __cplusplus
+diff --git a/sysdeps/linux/generic/sysdeps.cpp b/sysdeps/linux/generic/sysdeps.cpp
+index ac94ab2..9a44f41 100644
+--- a/sysdeps/linux/generic/sysdeps.cpp
++++ b/sysdeps/linux/generic/sysdeps.cpp
+@@ -437,7 +437,7 @@ extern "C" const char __mlibc_syscall_begin[1];
+ extern "C" const char __mlibc_syscall_end[1];
+ 
+ int sys_before_cancellable_syscall(ucontext_t *uct) {
+-	auto pc = reinterpret_cast<void*>(uct->uc_mcontext.rip);
++	auto pc = reinterpret_cast<void*>(uct->uc_mcontext.gregs[REG_RIP]);
+ 	if (pc < __mlibc_syscall_begin || pc > __mlibc_syscall_end)
+ 		return 0;
+ 	return 1;
+-- 
+2.35.1
+

@@ -1,0 +1,40 @@
+From 84f2d49262b0418ddad65a958fab68931c4b0f37 Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Tue, 10 May 2022 16:00:05 +0200
+Subject: [PATCH 1/2] options/posix: Add stub mincore
+
+---
+ options/posix/generic/sys-mman-stubs.cpp | 6 ++++++
+ options/posix/include/sys/mman.h         | 1 +
+ 2 files changed, 7 insertions(+)
+
+diff --git a/options/posix/generic/sys-mman-stubs.cpp b/options/posix/generic/sys-mman-stubs.cpp
+index 5de21eb..f67046b 100644
+--- a/options/posix/generic/sys-mman-stubs.cpp
++++ b/options/posix/generic/sys-mman-stubs.cpp
+@@ -153,4 +153,10 @@ int madvise(void *, size_t, int) {
+ 	__ensure(!"Not implemented");
+ 	__builtin_unreachable();
+ }
++
++int mincore(void *, size_t, unsigned char *) {
++	__ensure(!"Not implemented");
++	__builtin_unreachable();
++}
++
+ #endif
+diff --git a/options/posix/include/sys/mman.h b/options/posix/include/sys/mman.h
+index 4f52242..ed28371 100644
+--- a/options/posix/include/sys/mman.h
++++ b/options/posix/include/sys/mman.h
+@@ -62,6 +62,7 @@ int remap_file_pages(void *, size_t, int, size_t, int);
+ #ifdef __MLIBC_LINUX_OPTION
+ int memfd_create(const char *, unsigned int);
+ int madvise(void *, size_t, int);
++int mincore(void *, size_t, unsigned char *);
+ #endif
+ 
+ #ifdef __cplusplus
+-- 
+2.35.1
+
