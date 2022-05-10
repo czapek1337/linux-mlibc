@@ -6,6 +6,16 @@ sources:
     version: "3.8.2"
     tools_required: ["cross-automake-v1.15", "cross-libtool", "cross-pkg-config"]
 
+tools:
+  - name: "cross-python"
+    from_source: "python"
+    configure:
+      - args: ["@THIS_SOURCE_DIR@/configure", "--prefix=@PREFIX@"]
+    compile:
+      - args: ["make", "-j", "@PARALLELISM@"]
+    install:
+      - args: ["make", "install"]
+
 packages:
   - name: "python"
     from_source: "python"
