@@ -5,6 +5,7 @@ imports:
   - file: "ports/dev-libs.yml"
   - file: "ports/games-misc.yml"
   - file: "ports/sys-apps.yml"
+  - file: "ports/sys-devel.yml"
   - file: "ports/sys-libs.yml"
 
 sources:

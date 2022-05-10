@@ -9,6 +9,16 @@ sources:
     regenerate:
       - args: ["cp", "@BUILD_ROOT@/tools/cross-automake-v1.15/share/automake-1.15/config.sub", "@THIS_SOURCE_DIR@/build-aux/"]
 
+  # - name: "diffutils"
+  #   subdir: "build"
+  #   git: "https://git.savannah.gnu.org/git/diffutils.git"
+  #   tag: "v3.8"
+  #   version: "3.8"
+  #   tools_required: ["cross-autoconf-v2.69", "cross-automake-v1.15"]
+  #   regenerate:
+  #     - args: ["./bootstrap"]
+  #     - args: ["cp", "@BUILD_ROOT@/tools/cross-automake-v1.15/share/automake-1.15/config.sub", "@THIS_SOURCE_DIR@/build-aux/"]
+
 packages:
   - name: "coreutils"
     from_source: "coreutils"
@@ -24,3 +34,17 @@ packages:
     build:
       - args: ["make", "-j", "@PARALLELISM@"]
       - args: ["make", "DESTDIR=@THIS_COLLECT_DIR@", "install"]
+
+  # Currently broken, for details: https://gist.github.com/czapek1337/d69e4a744a13f019deebc3351194b84c
+  # - name: "diffutils"
+  #   from_source: "diffutils"
+  #   tools_required: ["cross-toolchain"]
+  #   configure:
+  #     - args: ["@THIS_SOURCE_DIR@/configure", "--host=@OPTION:arch-triple@", "--prefix=/usr", "--disable-nls", "--disable-werror"]
+  #     - args: "sed -i s/-Werror//g @THIS_BUILD_DIR@/lib/Makefile"
+  #     - args: "sed -i s/-Werror//g @THIS_BUILD_DIR@/src/Makefile"
+  #   build:
+  #     - args: ["make", "-j", "@PARALLELISM@"]
+  #     - args: ["make", "install"]
+  #       environ:
+  #         DESTDIR: "@THIS_COLLECT_DIR@"
