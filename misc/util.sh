@@ -63,7 +63,7 @@ case $2 in
   mount)
     mount_kvfs
     ;;
-  unmount)
+  umount | unmount)
     unmount_kvfs
     ;;
   chroot)
