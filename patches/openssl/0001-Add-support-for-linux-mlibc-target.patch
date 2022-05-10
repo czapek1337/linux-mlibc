@@ -1,0 +1,27 @@
+From 5070482ca316aecd1a680fb49788123989658e5b Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Tue, 10 May 2022 05:25:50 +0200
+Subject: [PATCH 1/2] Add support for linux-mlibc target
+
+---
+ Configurations/10-main.conf | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/Configurations/10-main.conf b/Configurations/10-main.conf
+index 61c6689a..17f05872 100644
+--- a/Configurations/10-main.conf
++++ b/Configurations/10-main.conf
+@@ -806,6 +806,10 @@ my %targets = (
+         perlasm_scheme   => "elf",
+         multilib         => "64",
+     },
++    "linux-mlibc-x86_64" => {
++        inherit_from     => [ "linux-x86_64" ],
++        disable          => [ "afalgeng" ],
++    },
+     "linux-x86_64-clang" => {
+         inherit_from     => [ "linux-x86_64" ],
+         CC               => "clang",
+-- 
+2.35.1
+

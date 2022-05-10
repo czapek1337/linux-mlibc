@@ -1,0 +1,39 @@
+From a1e8ab5de84efabc36e494f0cd246850f973e927 Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Tue, 10 May 2022 05:26:11 +0200
+Subject: [PATCH 2/2] Stop OpenSSL from doing direct system calls
+
+---
+ crypto/mem_sec.c        | 2 +-
+ crypto/rand/rand_unix.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/crypto/mem_sec.c b/crypto/mem_sec.c
+index 222c786c..c4c93c93 100644
+--- a/crypto/mem_sec.c
++++ b/crypto/mem_sec.c
+@@ -478,7 +478,7 @@ static int sh_init(size_t size, int minsize)
+     if (mprotect(sh.map_result + aligned, pgsize, PROT_NONE) < 0)
+         ret = 2;
+ 
+-#if defined(OPENSSL_SYS_LINUX) && defined(MLOCK_ONFAULT) && defined(SYS_mlock2)
++#if defined(OPENSSL_SYS_LINUX) && defined(MLOCK_ONFAULT) && defined(SYS_mlock2) && 0
+     if (syscall(SYS_mlock2, sh.arena, sh.arena_size, MLOCK_ONFAULT) < 0) {
+         if (errno == ENOSYS) {
+             if (mlock(sh.arena, sh.arena_size) < 0)
+diff --git a/crypto/rand/rand_unix.c b/crypto/rand/rand_unix.c
+index 43f1069d..e650bfec 100644
+--- a/crypto/rand/rand_unix.c
++++ b/crypto/rand/rand_unix.c
+@@ -405,7 +405,7 @@ static ssize_t syscall_random(void *buf, size_t buflen)
+ 
+     /* Linux supports this since version 3.17 */
+ #  if defined(__linux) && defined(__NR_getrandom)
+-    return syscall(__NR_getrandom, buf, buflen, 0);
++    return getrandom(buf, buflen, 0);
+ #  elif (defined(__FreeBSD__) || defined(__NetBSD__)) && defined(KERN_ARND)
+     return sysctl_random(buf, buflen);
+ #  else
+-- 
+2.35.1
+
