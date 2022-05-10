@@ -1,0 +1,37 @@
+From 8758d7a3f8a8547423bf97e69dae2e45c7d7bbd1 Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Tue, 10 May 2022 03:24:51 +0200
+Subject: [PATCH 1/2] sysdeps/linux: Implement sys_getrandom
+
+---
+ sysdeps/linux/generic/sysdeps.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/sysdeps/linux/generic/sysdeps.cpp b/sysdeps/linux/generic/sysdeps.cpp
+index 8cd14bb..b05620f 100644
+--- a/sysdeps/linux/generic/sysdeps.cpp
++++ b/sysdeps/linux/generic/sysdeps.cpp
+@@ -75,6 +75,7 @@
+ #define NR_pselect6 270
+ #define NR_dup3 292
+ #define NR_pipe2 293
++#define NR_getrandom 318
+ 
+ #define ARCH_SET_FS	0x1002
+ 
+@@ -677,4 +678,12 @@ int sys_fdatasync(int fd) {
+ 	return 0;
+ }
+ 
++int sys_getrandom(void *buffer, size_t length, int flags, ssize_t *bytes_written) {
++  auto ret = do_syscall(NR_getrandom, buffer, length, flags);
++  if (int e = sc_error(ret); e)
++    return e;
++  *bytes_written = sc_int_result<ssize_t>(ret);
++  return 0;
++}
++
+ } // namespace mlibc
+-- 
+2.35.1
+
