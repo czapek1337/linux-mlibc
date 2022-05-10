@@ -1,0 +1,38 @@
+From 7dfbb32371801029188848c3e03c7164d741a2d6 Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Tue, 10 May 2022 21:24:24 +0200
+Subject: [PATCH] sysdeps/linux: Implement sys_fadvise
+
+---
+ sysdeps/linux/generic/sysdeps.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/sysdeps/linux/generic/sysdeps.cpp b/sysdeps/linux/generic/sysdeps.cpp
+index 873a8a3..39cc537 100644
+--- a/sysdeps/linux/generic/sysdeps.cpp
++++ b/sysdeps/linux/generic/sysdeps.cpp
+@@ -69,6 +69,7 @@
+ #define NR_sync 162
+ #define NR_sys_futex 202
+ #define NR_getdents64 217
++#define NR_fadvise64 221
+ #define NR_clock_gettime 228
+ #define NR_exit_group 231
+ #define NR_tgkill 234
+@@ -113,6 +114,13 @@ int sys_anon_free(void *pointer, size_t size) {
+ 	return sys_vm_unmap(pointer, size);
+ }
+ 
++int sys_fadvise(int fd, off_t offset, off_t length, int advice) {
++  auto ret = do_syscall(NR_fadvise64, fd, offset, length, advice);
++  if(int e = sc_error(ret); e)
++    return e;
++	return 0;
++}
++
+ int sys_open(const char *path, int flags, int *fd) {
+         // TODO: pass mode in sys_open() sysdep
+ 	auto ret = do_cp_syscall(NR_open, path, flags, 0666);
+-- 
+2.36.1
+
