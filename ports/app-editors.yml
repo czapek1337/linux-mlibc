@@ -5,6 +5,21 @@ sources:
     tag: "v8.2.4928"
     version: "8.2.4928"
 
+  - name: "nano"
+    subdir: "build"
+    git: "https://git.savannah.gnu.org/git/nano.git"
+    tag: "v5.9"
+    version: "5.9"
+    tools_required: ["cross-autoconf-v2.69", "cross-automake-v1.15", "cross-pkg-config"]
+    regenerate:
+      - args: |
+          if ! [ -d gnulib ]; then
+              git clone git://git.sv.gnu.org/gnulib.git gnulib
+          else
+              git -C gnulib pull --unshallow || true
+          fi
+      - args: ["./autogen.sh"]
+
 packages:
   - name: "vim"
     from_source: "vim"
@@ -54,3 +69,29 @@ packages:
       - args: ["make", "install"]
         environ:
           DESTDIR: "@THIS_COLLECT_DIR@"
+
+  - name: "nano"
+    from_source: "nano"
+    tools_required: ["cross-toolchain"]
+    pkgs_required: ["ncurses", "zlib", "file"]
+    configure:
+      - args:
+          - "@THIS_SOURCE_DIR@/configure"
+          - "--host=@OPTION:arch-triple@"
+          - "--prefix=/usr"
+          - "--sysconfdir=/etc"
+          - "CFLAGS=-DSLOW_BUT_NO_HACKS"
+        environ:
+          PKG_CONFIG_SYSROOT_DIR: "@BUILD_ROOT@/system-root"
+          PKG_CONFIG_LIBDIR: "@BUILD_ROOT@/system-root/usr/lib/pkgconfig:@BUILD_ROOT@/system-root/usr/share/pkgconfig"
+          gl_cv_type_wctype_t: "yes"
+          gl_cv_type_wctrans_t: "yes"
+    build:
+      - args: ["make", "-j", "@PARALLELISM@"]
+      - args: ["make", "install"]
+        environ:
+          DESTDIR: "@THIS_COLLECT_DIR@"
+      - args: ["mkdir", "-pv", "@THIS_COLLECT_DIR@/etc"]
+      - args: ["mkdir", "-pv", "@THIS_COLLECT_DIR@/root"]
+      - args: ["cp", "-v", "@SOURCE_ROOT@/meta-sources/base-files/nanorc", "@THIS_COLLECT_DIR@/etc/nanorc"]
+      - args: ["cp", "-v", "@SOURCE_ROOT@/meta-sources/base-files/nanorc", "@THIS_COLLECT_DIR@/root/.nanorc"]

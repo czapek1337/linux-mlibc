@@ -1,0 +1,145 @@
+From 4ec42b1141b070693415ae68a94c1fe6dec7a65c Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Tue, 10 May 2022 16:39:35 +0200
+Subject: [PATCH] options,sysdeps: Add missing sys/vt.h header
+
+---
+ abis/linux/x86_64/vt.h              | 76 +++++++++++++++++++++++++++++
+ options/linux/include/sys/vt.h      |  6 +++
+ options/linux/meson.build           |  1 +
+ sysdeps/linux/include/abi-bits/vt.h |  1 +
+ sysdeps/linux/meson.build           |  1 +
+ 5 files changed, 85 insertions(+)
+ create mode 100644 abis/linux/x86_64/vt.h
+ create mode 100644 options/linux/include/sys/vt.h
+ create mode 120000 sysdeps/linux/include/abi-bits/vt.h
+
+diff --git a/abis/linux/x86_64/vt.h b/abis/linux/x86_64/vt.h
+new file mode 100644
+index 0000000..811933b
+--- /dev/null
++++ b/abis/linux/x86_64/vt.h
+@@ -0,0 +1,76 @@
++#ifndef _ABIBITS_VT_H
++#define _ABIBITS_VT_H
++
++#define MIN_NR_CONSOLES 1
++#define MAX_NR_CONSOLES 63
++
++#define VT_OPENQRY 0x5600
++#define VT_GETMODE 0x5601
++#define VT_SETMODE 0x5602
++#define VT_GETSTATE 0x5603
++#define VT_SENDSIG 0x5604
++#define VT_RELDISP 0x5605
++#define VT_ACTIVATE 0x5606
++#define VT_WAITACTIVE 0x5607
++#define VT_DISALLOCATE 0x5608
++#define VT_RESIZE 0x5609
++#define VT_RESIZEX 0x560A
++#define VT_LOCKSWITCH 0x560B
++#define VT_UNLOCKSWITCH 0x560C
++#define VT_GETHIFONTMASK 0x560D
++#define VT_WAITEVENT 0x560E
++#define VT_SETACTIVATE 0x560F
++
++struct vt_mode {
++  char mode;
++  char waitv;
++  short relsig;
++  short acqsig;
++  short frsig;
++};
++
++#define VT_AUTO 0x00
++#define VT_PROCESS 0x01
++#define VT_ACKACQ 0x02
++
++struct vt_stat {
++  unsigned short v_active;
++  unsigned short v_signal;
++  unsigned short v_state;
++};
++
++struct vt_sizes {
++  unsigned short v_rows;
++  unsigned short v_cols;
++  unsigned short v_scrollsize;
++};
++
++struct vt_consize {
++  unsigned short v_rows;
++  unsigned short v_cols;
++  unsigned short v_vlin;
++  unsigned short v_clin;
++  unsigned short v_vcol;
++  unsigned short v_ccol;
++};
++
++#define VT_EVENT_SWITCH 0x0001
++#define VT_EVENT_BLANK 0x0002
++#define VT_EVENT_UNBLANK 0x0004
++#define VT_EVENT_RESIZE 0x0008
++#define VT_MAX_EVENT 0x000F
++
++struct vt_event {
++  unsigned int event;
++
++  unsigned int oldev;
++  unsigned int newev;
++  unsigned int pad[4];
++};
++
++struct vt_setactivate {
++  unsigned int console;
++  struct vt_mode mode;
++};
++
++#endif // _ABIBITS_VT_H
+diff --git a/options/linux/include/sys/vt.h b/options/linux/include/sys/vt.h
+new file mode 100644
+index 0000000..3849919
+--- /dev/null
++++ b/options/linux/include/sys/vt.h
+@@ -0,0 +1,6 @@
++#ifndef _VT_H
++#define _VT_H
++
++#include <abi-bits/vt.h>
++
++#endif // _VT_H
+diff --git a/options/linux/meson.build b/options/linux/meson.build
+index a17902b..8066d68 100644
+--- a/options/linux/meson.build
++++ b/options/linux/meson.build
+@@ -60,6 +60,7 @@ if not no_headers
+ 		'include/sys/eventfd.h',
+ 		'include/sys/reboot.h',
+ 		'include/sys/fsuid.h',
++		'include/sys/vt.h',
+ 		subdir: 'sys'
+ 	)
+ endif
+diff --git a/sysdeps/linux/include/abi-bits/vt.h b/sysdeps/linux/include/abi-bits/vt.h
+new file mode 120000
+index 0000000..aeaa3ff
+--- /dev/null
++++ b/sysdeps/linux/include/abi-bits/vt.h
+@@ -0,0 +1 @@
++../../../../abis/linux/x86_64/vt.h
+\ No newline at end of file
+diff --git a/sysdeps/linux/meson.build b/sysdeps/linux/meson.build
+index bd92ac7..cf6524a 100644
+--- a/sysdeps/linux/meson.build
++++ b/sysdeps/linux/meson.build
+@@ -46,6 +46,7 @@ if not no_headers
+ 		'include/abi-bits/wait.h',
+ 		'include/abi-bits/limits.h',
+ 		'include/abi-bits/utsname.h',
++		'include/abi-bits/vt.h',
+ 		subdir: 'abi-bits'
+ 	)
+ endif
+-- 
+2.35.1
+

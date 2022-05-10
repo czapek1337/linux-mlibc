@@ -1,0 +1,29 @@
+From 6617b9d4186b0e5f525bf39f111cbcf9cf7978cc Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Tue, 10 May 2022 16:40:17 +0200
+Subject: [PATCH] Remove a useless check
+
+---
+ configure.ac | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 23dd03c..976ebec 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -71,12 +71,6 @@ AM_CONDITIONAL(BUILDING_FROM_GIT, test x$from_git = xyes)
+ dnl Checks for pkg-config and gettext when building from git.
+ 
+ if test x$from_git = xyes; then
+-	if test ! -f $(aclocal --print-ac-dir)/pkg.m4; then
+-		AC_MSG_ERROR([
+-  *** The pkg.m4 macros are missing.
+-  *** The pkg-config package needs to be installed when building from git.
+-  *** After fixing this problem, rerun ./autogen.sh.])
+-	fi
+ 	if test "$ac_cv_path_MSGFMT" = ":"; then
+ 		AC_MSG_ERROR([
+   *** The msgfmt program is missing.
+-- 
+2.35.1
+
