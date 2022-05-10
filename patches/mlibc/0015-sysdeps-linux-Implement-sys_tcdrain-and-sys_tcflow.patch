@@ -1,0 +1,51 @@
+From 70f146bbd643d675755c11f827cc9a066d423890 Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Tue, 10 May 2022 03:41:11 +0200
+Subject: [PATCH 2/2] sysdeps/linux: Implement sys_tcdrain and sys_tcflow
+
+---
+ options/linux-headers/include/asm/ioctls.h |  2 ++
+ sysdeps/linux/generic/sysdeps.cpp          | 14 ++++++++++++++
+ 2 files changed, 16 insertions(+)
+
+diff --git a/options/linux-headers/include/asm/ioctls.h b/options/linux-headers/include/asm/ioctls.h
+index f246d1d..f6202a0 100644
+--- a/options/linux-headers/include/asm/ioctls.h
++++ b/options/linux-headers/include/asm/ioctls.h
+@@ -7,6 +7,8 @@
+ #define TCSETS 0x5402
+ #define TCSETSW 0x5403
+ #define TCSETSF 0x5404
++#define TCSBRK 0x5409
++#define TCXONC 0x540A
+ #define TIOCSCTTY 0x540E
+ #define TIOCSTI 0x5412
+ #define TIOCGWINSZ 0x5413
+diff --git a/sysdeps/linux/generic/sysdeps.cpp b/sysdeps/linux/generic/sysdeps.cpp
+index b05620f..0429f4c 100644
+--- a/sysdeps/linux/generic/sysdeps.cpp
++++ b/sysdeps/linux/generic/sysdeps.cpp
+@@ -472,6 +472,20 @@ int sys_tcsetattr(int fd, int optional_action, const struct termios *attr) {
+ 	return 0;
+ }
+ 
++int sys_tcdrain(int fd) {
++  auto ret = do_syscall(NR_ioctl, fd, TCSBRK, 1);
++  if (int e = sc_error(ret); e)
++    return e;
++  return 0;
++}
++
++int sys_tcflow(int fd, int action) {
++  auto ret = do_syscall(NR_ioctl, fd, TCXONC, action);
++  if (int e = sc_error(ret); e)
++    return e;
++  return 0;
++}
++
+ int sys_access(const char *path, int mode) {
+ 	auto ret = do_syscall(NR_access, path, mode);
+ 	if (int e = sc_error(ret); e)
+-- 
+2.35.1
+
