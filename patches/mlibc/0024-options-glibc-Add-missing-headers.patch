@@ -1,0 +1,94 @@
+From bd4d9efa26cf783661331d6cc200a9490391adf1 Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Tue, 10 May 2022 22:46:30 +0200
+Subject: [PATCH] options/glibc: Add missing headers
+
+---
+ options/glibc/include/sys/procfs.h | 61 ++++++++++++++++++++++++++++++
+ options/glibc/meson.build          |  2 +
+ 2 files changed, 63 insertions(+)
+ create mode 100644 options/glibc/include/sys/procfs.h
+
+diff --git a/options/glibc/include/sys/procfs.h b/options/glibc/include/sys/procfs.h
+new file mode 100644
+index 0000000..9eb9aa2
+--- /dev/null
++++ b/options/glibc/include/sys/procfs.h
+@@ -0,0 +1,61 @@
++#ifndef _SYS_PROCFS_H
++#define _SYS_PROCFS_H
++
++#include <abi-bits/pid_t.h>
++#include <sys/time.h>
++#include <sys/user.h>
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++typedef unsigned long long elf_greg_t;
++
++#define ELF_NGREG (sizeof(struct user_regs_struct) / sizeof(elf_greg_t))
++typedef elf_greg_t elf_gregset_t[ELF_NGREG];
++
++typedef struct user_fpregs_struct elf_fpregset_t;
++
++struct elf_siginfo {
++  int si_signo;
++  int si_code;
++  int si_errno;
++};
++
++struct elf_prstatus {
++  struct elf_siginfo pr_info;
++  short int pr_cursig;
++  unsigned long int pr_sigpend;
++  unsigned long int pr_sighold;
++  pid_t pr_pid;
++  pid_t pr_ppid;
++  pid_t pr_pgrp;
++  pid_t pr_sid;
++  struct timeval pr_utime;
++  struct timeval pr_stime;
++  struct timeval pr_cutime;
++  struct timeval pr_cstime;
++  elf_gregset_t pr_reg;
++  int pr_fpvalid;
++};
++
++#define ELF_PRARGSZ 80
++
++struct elf_prpsinfo {
++  char pr_state;
++  char pr_sname;
++  char pr_zomb;
++  char pr_nice;
++  unsigned long int pr_flag;
++  uid_t pr_uid;
++  gid_t pr_gid;
++  int pr_pid, pr_ppid, pr_pgrp, pr_sid;
++  char pr_fname[16];
++  char pr_psargs[ELF_PRARGSZ];
++};
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif
+diff --git a/options/glibc/meson.build b/options/glibc/meson.build
+index 84efeb4..b225ff1 100644
+--- a/options/glibc/meson.build
++++ b/options/glibc/meson.build
+@@ -30,6 +30,8 @@ if not no_headers
+ 	install_headers(
+ 		'include/sys/dir.h',
+ 		'include/sys/ioctl.h',
++		'include/sys/user.h',
++		'include/sys/procfs.h',
+ 		subdir: 'sys'
+ 	)
+ 	install_headers(
+-- 
+2.36.1
+

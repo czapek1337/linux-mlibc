@@ -19,6 +19,25 @@ sources:
       - args: ["cp", "@BUILD_ROOT@/tools/cross-automake-v1.15/share/automake-1.15/config.sub", "@THIS_SOURCE_DIR@/build-aux/"]
 
 packages:
+  - name: "binutils"
+    from_source: "binutils"
+    tools_required: ["cross-toolchain"]
+    configure:
+      - args:
+          - "@THIS_SOURCE_DIR@/configure"
+          - "--host=@OPTION:arch-triple@"
+          - "--target=@OPTION:arch-triple@"
+          - "--prefix=/usr"
+          - "--with-sysroot=/"
+          - "--disable-nls"
+          - "--disable-werror"
+          - "CFLAGS=-O2" # -g blows up the binary size.
+    build:
+      - args: ["make", "-j", "@PARALLELISM@", "all-binutils", "all-gas", "all-ld"]
+      - args: ["make", "install-binutils", "install-gas", "install-ld"]
+        environ:
+          DESTDIR: "@THIS_COLLECT_DIR@"
+
   - name: "make"
     from_source: "make"
     tools_required: ["cross-toolchain"]
