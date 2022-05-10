@@ -1,0 +1,84 @@
+From f4202ffb4152ed1a240e8171e7487438c476628d Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Tue, 10 May 2022 17:28:50 +0200
+Subject: [PATCH 1/2] options,sysdeps: Implement fstatfs
+
+---
+ options/posix/generic/sys-statfs-stubs.cpp    | 14 +++++++++++---
+ options/posix/include/mlibc/posix-sysdeps.hpp |  1 +
+ sysdeps/linux/generic/sysdeps.cpp             | 16 ++++++++++++++++
+ 3 files changed, 28 insertions(+), 3 deletions(-)
+
+diff --git a/options/posix/generic/sys-statfs-stubs.cpp b/options/posix/generic/sys-statfs-stubs.cpp
+index cae4b4f..876caa9 100644
+--- a/options/posix/generic/sys-statfs-stubs.cpp
++++ b/options/posix/generic/sys-statfs-stubs.cpp
+@@ -19,8 +19,16 @@ int statfs(const char *path, struct statfs *buf) {
+ 	return 0;
+ }
+ 
+-int fstatfs(int, struct statfs *) {
+-	__ensure(!"Not implemented");
+-	__builtin_unreachable();
++int fstatfs(int fd, struct statfs *buf) {
++	if (!mlibc::sys_fstatfs) {
++		MLIBC_MISSING_SYSDEP();
++		errno = ENOSYS;
++		return -1;
++	}
++	if (int e = mlibc::sys_fstatfs(fd, buf); e) {
++		errno = e;
++		return -1;
++	}
++	return 0;
+ }
+ 
+diff --git a/options/posix/include/mlibc/posix-sysdeps.hpp b/options/posix/include/mlibc/posix-sysdeps.hpp
+index 97a614f..74aabb8 100644
+--- a/options/posix/include/mlibc/posix-sysdeps.hpp
++++ b/options/posix/include/mlibc/posix-sysdeps.hpp
+@@ -169,6 +169,7 @@ int sys_vm_unmap(void *pointer, size_t size);
+ [[gnu::weak]] int sys_sigsuspend(const sigset_t *set);
+ [[gnu::weak]] int sys_setgroups(size_t size, const gid_t *list);
+ [[gnu::weak]] int sys_statfs(const char *path, struct statfs *buf);
++[[gnu::weak]] int sys_fstatfs(int fd, struct statfs *buf);
+ [[gnu::weak]] int sys_memfd_create(const char *name, int flags, int *fd);
+ 
+ [[gnu::weak]] int sys_getitimer(int which, struct itimerval *curr_value);
+diff --git a/sysdeps/linux/generic/sysdeps.cpp b/sysdeps/linux/generic/sysdeps.cpp
+index 9a44f41..b1ea91d 100644
+--- a/sysdeps/linux/generic/sysdeps.cpp
++++ b/sysdeps/linux/generic/sysdeps.cpp
+@@ -63,6 +63,8 @@
+ #define NR_getpgid 121
+ #define NR_rt_sigsuspend 130
+ #define NR_sigaltstack 131
++#define NR_statfs 137
++#define NR_fstatfs 138
+ #define NR_arch_prctl 158
+ #define NR_sync 162
+ #define NR_sys_futex 202
+@@ -222,6 +224,20 @@ int sys_stat(fsfd_target fsfdt, int fd, const char *path, int flags, struct stat
+ 	return 0;
+ }
+ 
++int sys_statfs(const char *path, struct statfs *buf) {
++  auto ret = do_cp_syscall(NR_statfs, path, buf);
++  if (int e = sc_error(ret); e)
++    return e;
++  return 0;
++}
++
++int sys_fstatfs(int fd, struct statfs *buf) {
++  auto ret = do_cp_syscall(NR_fstatfs, fd, buf);
++	if (int e = sc_error(ret); e)
++		return e;
++	return 0;
++}
++
+ extern "C" void __mlibc_signal_restore(void);
+ 
+ int sys_sigaction(int signum, const struct sigaction *act,
+-- 
+2.35.1
+

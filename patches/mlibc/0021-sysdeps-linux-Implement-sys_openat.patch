@@ -1,0 +1,39 @@
+From 56d71cd8ce1dcfcd2e0276ac8506f50afa83b5d3 Mon Sep 17 00:00:00 2001
+From: czapek1337 <czapek1337@gmail.com>
+Date: Tue, 10 May 2022 17:29:11 +0200
+Subject: [PATCH 2/2] sysdeps/linux: Implement sys_openat
+
+---
+ sysdeps/linux/generic/sysdeps.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/sysdeps/linux/generic/sysdeps.cpp b/sysdeps/linux/generic/sysdeps.cpp
+index b1ea91d..873a8a3 100644
+--- a/sysdeps/linux/generic/sysdeps.cpp
++++ b/sysdeps/linux/generic/sysdeps.cpp
+@@ -72,6 +72,7 @@
+ #define NR_clock_gettime 228
+ #define NR_exit_group 231
+ #define NR_tgkill 234
++#define NR_openat 257
+ #define NR_newfstatat 262
+ #define NR_unlinkat 263
+ #define NR_renameat 264
+@@ -121,6 +122,14 @@ int sys_open(const char *path, int flags, int *fd) {
+ 	return 0;
+ }
+ 
++int sys_openat(int dirfd, const char *path, int flags, int *fd) {
++  auto ret = do_syscall(NR_openat, dirfd, path, flags);
++  if (int e = sc_error(ret); e)
++    return e;
++  *fd = sc_int_result<int>(ret);
++  return 0;
++}
++
+ int sys_close(int fd) {
+ 	auto ret = do_cp_syscall(NR_close, fd);
+ 	if(int e = sc_error(ret); e)
+-- 
+2.35.1
+
